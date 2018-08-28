@@ -24,7 +24,4 @@ public class DrawActivity extends Activity {
     }
 
 
-
-
-
 }
