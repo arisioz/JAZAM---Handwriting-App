@@ -8,21 +8,38 @@ import android.widget.ImageButton;
 
 public class MainActivity extends Activity {
 
+    public static int chosenShape;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        int[] buttonID = {R.id.imgbtn1, R.id.imgbtn2, R.id.imgbtn3};
+        ImageButton imgbtn1 = (ImageButton) findViewById(R.id.imgbtn1);
+        imgbtn1.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                chosenShape = R.drawable.triangle;
+                startActivity(new Intent(MainActivity.this, DrawActivity.class));
+            }
+        });
 
-        for (int btnID : buttonID) {
-            ImageButton imgbtn = (ImageButton) findViewById(btnID);
-            imgbtn.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, DrawActivity.class));
-                }
-            });
-        }
+        ImageButton imgbtn2 = (ImageButton) findViewById(R.id.imgbtn2);
+        imgbtn2.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                chosenShape = R.drawable.circle;
+                startActivity(new Intent(MainActivity.this, DrawActivity.class));
+            }
+        });
+
+        ImageButton imgbtn3 = (ImageButton) findViewById(R.id.imgbtn3);
+        imgbtn3.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                chosenShape = R.drawable.square;
+                startActivity(new Intent(MainActivity.this, DrawActivity.class));
+            }
+        });
+
+
 
     }
 }
