@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
                 case R.id.imgbtnRd:
                     int random_Number = new Random().nextInt(possible_Shapes.length);
                     chosen_Shape = possible_Shapes[random_Number];
+                    break;
                 default:
                     throw new RuntimeException("Unknown button ID");
             }
