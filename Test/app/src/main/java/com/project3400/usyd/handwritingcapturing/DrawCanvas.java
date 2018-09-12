@@ -11,10 +11,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-/**
- * Created by hmy on 9/12/2018.
- */
-
 public class DrawCanvas extends View {
 
     private static Bitmap mBitmap;
@@ -22,9 +18,8 @@ public class DrawCanvas extends View {
     private Path mPath = new Path();
     private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
     Context context;
-    private Paint circlePaint = new Paint();
     private Path circlePath = new Path();
-    private Paint mPaint = createPaint();
+    private Paint mPaint = new Paint();
 
 // DEFAULT_COLOR;
 // BRUSH_SIZE;
@@ -35,16 +30,6 @@ public class DrawCanvas extends View {
 
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
-        context = c;
-        circlePaint.setAntiAlias(true);
-        circlePaint.setColor(Color.BLUE);
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeJoin(Paint.Join.MITER);
-        circlePaint.setStrokeWidth(4f);
-    }
-
-    public Paint createPaint() {
-        Paint mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mPaint.setDither(true);
         mPaint.setColor(Color.GREEN);
@@ -52,7 +37,6 @@ public class DrawCanvas extends View {
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
         mPaint.setStrokeWidth(12);
-        return mPaint;
     }
 
     @Override
@@ -77,6 +61,8 @@ public class DrawCanvas extends View {
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
+
+        //System.out.println(event.getPressure());
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:

@@ -10,9 +10,6 @@ import java.util.Random;
 
 public class MainActivity extends Activity {
 
-    /**
-     * Class variables followed by the instance variables
-     */
     public static int chosen_Shape;
     private ImageButton image_Button_1;
     private ImageButton image_Button_2;
