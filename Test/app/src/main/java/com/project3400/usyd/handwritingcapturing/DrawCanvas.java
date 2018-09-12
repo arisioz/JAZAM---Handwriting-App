@@ -11,15 +11,15 @@ public class DrawCanvas extends View {
     private static Bitmap mBitmap;
     private static Canvas mCanvas;
     private Path mPath = new Path();
-    private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
     private Paint mPaint = new Paint();
+    private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
     private boolean fingerOrPen = true; //true is finger, false is pen
 
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
         mPaint.setAntiAlias(true);
         mPaint.setDither(true);
-        mPaint.setColor(Color.GREEN);
+        mPaint.setColor(Color.GREEN); //may consider use change to "hsb" color mode, to make a rainbow effect
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
