@@ -42,14 +42,9 @@ public class MainActivity extends Activity {
                     throw new RuntimeException("Unknown button ID");
             }
             Intent activity_Main_To_Draw = new Intent(MainActivity.this, DrawActivity.class);
-            //activity_Main_To_Draw.putExtra("chosen_Shape",v.getId());
             startActivity(activity_Main_To_Draw);
         }
     };
-
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
