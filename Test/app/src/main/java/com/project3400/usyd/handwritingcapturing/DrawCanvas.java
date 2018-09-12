@@ -49,7 +49,7 @@ public class DrawCanvas extends View {
                 break;
             case MotionEvent.ACTION_MOVE:  //touch move
                 mPath.lineTo(event.getX(), event.getY());
-                mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + event.getPressure() * 20);
+                mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + event.getPressure() * 25);
                 mCanvas.drawPath(mPath, mPaint);
                 mPath.reset();
                 mPath.moveTo(event.getX(), event.getY());
