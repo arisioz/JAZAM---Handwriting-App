@@ -37,9 +37,9 @@ public class DrawActivity extends Activity {
         img.setImageResource(MainActivity.chosen_Shape);
 
         ImageButton imgbtn_back = findViewById(R.id.imgbtn_back);
-        imgbtn_back.setOnClickListener(tweakedOnClickListener);
-
         ImageButton imgbtn_reset = findViewById(R.id.imgbtn_reset);
+
+        imgbtn_back.setOnClickListener(tweakedOnClickListener);
         imgbtn_reset.setOnClickListener(tweakedOnClickListener);
 
     }

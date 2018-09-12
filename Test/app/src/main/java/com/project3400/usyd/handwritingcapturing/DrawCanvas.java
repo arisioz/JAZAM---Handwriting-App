@@ -14,10 +14,6 @@ public class DrawCanvas extends View {
     private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
     private Paint mPaint = new Paint();
 
-    public DrawCanvas(Context c) {
-        super(c);
-    }
-
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
         mPaint.setAntiAlias(true);
@@ -34,7 +30,6 @@ public class DrawCanvas extends View {
         super.onSizeChanged(width, height, preWidth, preHeight);
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
-
     }
 
     @Override
@@ -42,7 +37,6 @@ public class DrawCanvas extends View {
         super.onDraw(canvas);
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
         canvas.drawPath(mPath, mPaint);
-
     }
 
     private float mX, mY;
@@ -51,9 +45,7 @@ public class DrawCanvas extends View {
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
-
-        //System.out.println(event.getPressure());
-
+        float pressure = event.getPressure();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mPath.reset();
