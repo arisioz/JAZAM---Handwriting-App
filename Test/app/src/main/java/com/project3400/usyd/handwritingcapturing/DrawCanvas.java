@@ -13,6 +13,7 @@ public class DrawCanvas extends View {
     private Path mPath = new Path();
     private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
     private Paint mPaint = new Paint();
+    private boolean fingerOrPen = true; //true is finger, false is pen
 
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
@@ -39,34 +40,22 @@ public class DrawCanvas extends View {
         canvas.drawPath(mPath, mPaint);
     }
 
-    private float mX, mY;
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
-        float pressure = event.getPressure();
         switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                mPath.reset();
-                mPath.moveTo(x, y);
-                mX = x;
-                mY = y;
-                invalidate();
+            case MotionEvent.ACTION_DOWN: //touch down
+                fingerOrPen = event.getPressure() == 1;
+                mPath.moveTo(event.getX(), event.getY());
                 break;
-            case MotionEvent.ACTION_MOVE:
-                if (Math.abs(x - mX) >= 4 || Math.abs(y - mY) >= 4) {
-                    mPath.quadTo(mX, mY, (x + mX) / 2, (y + mY) / 2);
-                    mX = x;
-                    mY = y;
-                }
-                invalidate();
-                break;
-            case MotionEvent.ACTION_UP:
-                mPath.lineTo(mX, mY);
+            case MotionEvent.ACTION_MOVE:  //touch move
+                mPath.lineTo(event.getX(), event.getY());
+                mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + event.getPressure() * 20);
                 mCanvas.drawPath(mPath, mPaint);
                 mPath.reset();
+                mPath.moveTo(event.getX(), event.getY());
                 invalidate();
+                break;
+            case MotionEvent.ACTION_UP:  //touch up
                 break;
         }
         return true;
