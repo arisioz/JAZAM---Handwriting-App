@@ -1,12 +1,7 @@
 package com.project3400.usyd.handwritingcapturing;
 
+import android.graphics.*;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.PorterDuff;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,12 +12,7 @@ public class DrawCanvas extends View {
     private static Canvas mCanvas;
     private Path mPath = new Path();
     private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
-    Context context;
-    private Path circlePath = new Path();
     private Paint mPaint = new Paint();
-
-// DEFAULT_COLOR;
-// BRUSH_SIZE;
 
     public DrawCanvas(Context c) {
         super(c);
@@ -36,7 +26,7 @@ public class DrawCanvas extends View {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
-        mPaint.setStrokeWidth(12);
+        mPaint.setStrokeWidth(10);
     }
 
     @Override
@@ -82,7 +72,6 @@ public class DrawCanvas extends View {
                 break;
             case MotionEvent.ACTION_UP:
                 mPath.lineTo(mX, mY);
-                circlePath.reset();
                 mCanvas.drawPath(mPath, mPaint);
                 mPath.reset();
                 invalidate();

@@ -7,9 +7,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
-
 public class DrawActivity extends Activity {
-
 
     private ImageView img;
 
@@ -27,10 +25,8 @@ public class DrawActivity extends Activity {
                 default:
                     throw new RuntimeException("Unknown button ID");
             }
-
         }
     };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +43,4 @@ public class DrawActivity extends Activity {
         imgbtn_reset.setOnClickListener(tweakedOnClickListener);
 
     }
-
-
 }
