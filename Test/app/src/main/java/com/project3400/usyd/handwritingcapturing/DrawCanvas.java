@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 public class DrawCanvas extends View {
 
@@ -42,6 +43,7 @@ public class DrawCanvas extends View {
 
     boolean endDraw = true;
     boolean lockInput;
+    long toastTime = System.currentTimeMillis();
     float pPres = 0.5f;
 
     @Override
@@ -59,12 +61,14 @@ public class DrawCanvas extends View {
                     endDraw = false;
                 }
                 if (lockInput != fingerOrPen) {
+                    makeToast();
                     return true;
                 }
                 mPath.moveTo(event.getX(), event.getY());
                 return true;
             case MotionEvent.ACTION_MOVE:  //touch move
                 if (lockInput != fingerOrPen) {
+                    makeToast();
                     return true;
                 }
                 mPath.lineTo(event.getX(), event.getY());
@@ -79,6 +83,13 @@ public class DrawCanvas extends View {
                 return true;
             default:
                 return true;
+        }
+    }
+
+    public void makeToast() {
+        if (System.currentTimeMillis() - toastTime > 2000) {
+            Toast.makeText(getContext(), "Please use pen or finger only", Toast.LENGTH_SHORT).show();
+            toastTime = System.currentTimeMillis();
         }
     }
 
