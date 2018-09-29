@@ -9,8 +9,6 @@ import android.widget.ImageView;
 
 public class DrawActivity extends Activity {
 
-    private ImageView img;
-
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -33,7 +31,7 @@ public class DrawActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_draw);
 
-        img = findViewById(R.id.imgdraw);
+        ImageView img = findViewById(R.id.imgdraw);
         img.setImageResource(MainActivity.chosen_Shape);
 
         ImageButton imgbtn_back = findViewById(R.id.imgbtn_back);

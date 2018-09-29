@@ -19,7 +19,7 @@ public class DrawCanvas extends View {
         super(c, attrs);
         mPaint.setAntiAlias(true);
         mPaint.setDither(true);
-        mPaint.setColor(Color.GREEN); //may consider use change to "hsb" color mode, to make a rainbow effect
+        mPaint.setColor(Color.GREEN);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -33,11 +33,16 @@ public class DrawCanvas extends View {
         mCanvas = new Canvas(mBitmap);
     }
 
+
+    float hue[] = {0,1,1};
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
         canvas.drawPath(mPath, mPaint);
+        hue[0]+=1;
+        hue[0]%=360;
+        mPaint.setColor(Color.HSVToColor(hue));
     }
 
     @Override
