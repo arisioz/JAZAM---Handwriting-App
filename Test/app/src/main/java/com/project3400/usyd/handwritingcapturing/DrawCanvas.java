@@ -33,41 +33,50 @@ public class DrawCanvas extends View {
         mCanvas = new Canvas(mBitmap);
     }
 
-
-    float hue[] = {0,1,1};
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
         canvas.drawPath(mPath, mPaint);
-        hue[0]+=1;
-        hue[0]%=360;
-        mPaint.setColor(Color.HSVToColor(hue));
     }
+
+    boolean endDraw = true;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        float mPres = event.getPressure();
+        float mColor[] = {0, 1, 1};
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: //touch down
-                fingerOrPen = event.getPressure() == 1;
+                endDraw = false;
+                fingerOrPen = mPres == 1;
                 mPath.moveTo(event.getX(), event.getY());
-                break;
+                return true;
             case MotionEvent.ACTION_MOVE:  //touch move
                 mPath.lineTo(event.getX(), event.getY());
-                mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + event.getPressure() * 25);
+                mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + mPres * 25);
+
+                mColor[0] = fingerOrPen ? 120 : mPres * 80 + 80;    //hue
+                mColor[1] = fingerOrPen ? 1 : mPres * 0.5f + 0.5f;  //saturation
+                mPaint.setColor(Color.HSVToColor(mColor));
+
                 mCanvas.drawPath(mPath, mPaint);
                 mPath.reset();
                 mPath.moveTo(event.getX(), event.getY());
                 invalidate();
-                break;
+                return true;
             case MotionEvent.ACTION_UP:  //touch up
-                break;
+                return true;
+
         }
-        return true;
+        return false;
     }
 
     public void clearCanvas() {
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         invalidate();
     }
+
 }
