@@ -41,42 +41,50 @@ public class DrawCanvas extends View {
     }
 
     boolean endDraw = true;
+    boolean lockInput;
+    float pPres = 0.5f;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        float mPres = event.getPressure();
+        float mPres = pPres + (event.getPressure() - pPres) / 4;  //smooth thickness change
+        pPres = mPres;
         float mColor[] = {0, 1, 1};
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: //touch down
-                endDraw = false;
-                fingerOrPen = mPres == 1;
+                fingerOrPen = event.getPressure() == 1;
+                if (endDraw) {
+                    lockInput = fingerOrPen;
+                    endDraw = false;
+                }
+                if (lockInput != fingerOrPen) {
+                    return true;
+                }
                 mPath.moveTo(event.getX(), event.getY());
                 return true;
             case MotionEvent.ACTION_MOVE:  //touch move
+                if (lockInput != fingerOrPen) {
+                    return true;
+                }
                 mPath.lineTo(event.getX(), event.getY());
                 mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + mPres * 25);
-
                 mColor[0] = fingerOrPen ? 120 : mPres * 80 + 80;    //hue
                 mColor[1] = fingerOrPen ? 1 : mPres * 0.5f + 0.5f;  //saturation
                 mPaint.setColor(Color.HSVToColor(mColor));
-
                 mCanvas.drawPath(mPath, mPaint);
                 mPath.reset();
                 mPath.moveTo(event.getX(), event.getY());
                 invalidate();
                 return true;
-            case MotionEvent.ACTION_UP:  //touch up
+            default:
                 return true;
-
         }
-        return false;
     }
 
     public void clearCanvas() {
+        endDraw = true;
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         invalidate();
     }
-
 }
