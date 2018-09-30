@@ -109,20 +109,20 @@ public class DrawCanvas extends View {
         //create folder
         String externalDataPath = Environment.getExternalStorageDirectory() + "/HWOutput";
         File f = new File(externalDataPath);
+        boolean fileCreated = false;
         if (!f.exists()) {
-            if(f.mkdir()){
-                Toast.makeText(getContext(), "Your Output will be saved to /HWOutput", Toast.LENGTH_SHORT).show();
-            }
+            fileCreated = f.mkdir();
         }
 
         //save file
         File file = new File(Environment.getExternalStorageDirectory(), "/HWOutput/output.csv");
         try {
-            FileOutputStream fos=new FileOutputStream(file,true);
+            FileOutputStream fos = new FileOutputStream(file, true);
             fos.write("test-hello\n".getBytes());
             fos.flush();
             fos.close();
-            Toast.makeText(getContext(), "Saved successfully!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), fileCreated ? "Your Output will be saved to /HWOutput/output.csv" :
+                    "New capture added successfully!", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
         }

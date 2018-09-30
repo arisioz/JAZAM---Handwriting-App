@@ -45,9 +45,5 @@ public class DrawActivity extends Activity {
         imgbtn_back.setOnClickListener(tweakedOnClickListener);
         imgbtn_reset.setOnClickListener(tweakedOnClickListener);
         imgbtn_save.setOnClickListener(tweakedOnClickListener);
-
-
     }
-
-
 }
