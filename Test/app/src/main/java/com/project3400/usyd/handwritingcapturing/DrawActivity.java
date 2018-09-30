@@ -1,5 +1,6 @@
 package com.project3400.usyd.handwritingcapturing;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,9 +18,12 @@ public class DrawActivity extends Activity {
                     startActivity(new Intent(DrawActivity.this, MainActivity.class));
                     break;
                 case R.id.imgbtn_reset:
-                    ((DrawCanvas) findViewById(R.id.myCanvas)).clearCanvas();
+                    ((DrawCanvas) findViewById(R.id.myCanvas)).reset();
                     break;
-
+                case R.id.imgbtn_save:
+                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+                    ((DrawCanvas) findViewById(R.id.myCanvas)).save();
+                    break;
                 default:
                     throw new RuntimeException("Unknown button ID");
             }
@@ -36,9 +40,14 @@ public class DrawActivity extends Activity {
 
         ImageButton imgbtn_back = findViewById(R.id.imgbtn_back);
         ImageButton imgbtn_reset = findViewById(R.id.imgbtn_reset);
+        ImageButton imgbtn_save = findViewById(R.id.imgbtn_save);
 
         imgbtn_back.setOnClickListener(tweakedOnClickListener);
         imgbtn_reset.setOnClickListener(tweakedOnClickListener);
+        imgbtn_save.setOnClickListener(tweakedOnClickListener);
+
 
     }
+
+
 }

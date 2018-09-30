@@ -2,10 +2,15 @@ package com.project3400.usyd.handwritingcapturing;
 
 import android.graphics.*;
 import android.content.Context;
+import android.os.Environment;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class DrawCanvas extends View {
 
@@ -93,9 +98,33 @@ public class DrawCanvas extends View {
         }
     }
 
-    public void clearCanvas() {
+    public void reset() {
         endDraw = true;
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         invalidate();
+    }
+
+    public void save() {
+
+        //create folder
+        String externalDataPath = Environment.getExternalStorageDirectory() + "/HWOutput";
+        File f = new File(externalDataPath);
+        if (!f.exists()) {
+            if(f.mkdir()){
+                Toast.makeText(getContext(), "Your Output will be saved to /HWOutput", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        //save file
+        File file = new File(Environment.getExternalStorageDirectory(), "/HWOutput/output.csv");
+        try {
+            FileOutputStream fos=new FileOutputStream(file,true);
+            fos.write("test-hello\n".getBytes());
+            fos.flush();
+            fos.close();
+            Toast.makeText(getContext(), "Saved successfully!", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
