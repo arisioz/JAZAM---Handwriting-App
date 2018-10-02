@@ -10,6 +10,27 @@ import android.widget.ImageView;
 
 public class DrawActivity extends Activity {
 
+    private ImageButton imgbtn_back;
+    private ImageButton imgbtn_reset;
+    private ImageButton imgbtn_save;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_draw);
+
+        ImageView img = findViewById(R.id.imgdraw);
+        img.setImageResource(MainActivity.chosen_Shape);
+
+        imgbtn_back = findViewById(R.id.imgbtn_back);
+        imgbtn_reset = findViewById(R.id.imgbtn_reset);
+        imgbtn_save = findViewById(R.id.imgbtn_save);
+
+        imgbtn_back.setOnClickListener(tweakedOnClickListener);
+        imgbtn_reset.setOnClickListener(tweakedOnClickListener);
+        imgbtn_save.setOnClickListener(tweakedOnClickListener);
+    }
+
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -30,20 +51,28 @@ public class DrawActivity extends Activity {
         }
     };
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_draw);
-
-        ImageView img = findViewById(R.id.imgdraw);
-        img.setImageResource(MainActivity.chosen_Shape);
-
-        ImageButton imgbtn_back = findViewById(R.id.imgbtn_back);
-        ImageButton imgbtn_reset = findViewById(R.id.imgbtn_reset);
-        ImageButton imgbtn_save = findViewById(R.id.imgbtn_save);
-
-        imgbtn_back.setOnClickListener(tweakedOnClickListener);
-        imgbtn_reset.setOnClickListener(tweakedOnClickListener);
-        imgbtn_save.setOnClickListener(tweakedOnClickListener);
+    public void changeIcon(String cmd) {
+        switch (cmd) {
+            case "back_gray":
+                imgbtn_back.setImageResource(R.drawable.back_gray);
+                break;
+            case "save_gray":
+                imgbtn_save.setImageResource(R.drawable.save_gray);
+                break;
+            case "reset_gray":
+                imgbtn_reset.setImageResource(R.drawable.reset_gray);
+                break;
+            case "back_black":
+                imgbtn_back.setImageResource(R.drawable.back_black);
+                break;
+            case "save_black":
+                imgbtn_save.setImageResource(R.drawable.save_black);
+                break;
+            case "reset_black":
+                imgbtn_reset.setImageResource(R.drawable.reset_black);
+                break;
+            default:
+                throw new RuntimeException("Unknown Icon change command");
+        }
     }
 }

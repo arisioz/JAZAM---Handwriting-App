@@ -8,9 +8,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 
 public class DrawCanvas extends View {
 
@@ -19,7 +18,7 @@ public class DrawCanvas extends View {
     private Path mPath = new Path();
     private Paint mPaint = new Paint();
     private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
-    private boolean fingerOrPen = true; //true is finger, false is pen
+    private DrawActivity mDrawActivity = (DrawActivity) getContext();
 
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
@@ -46,10 +45,13 @@ public class DrawCanvas extends View {
         canvas.drawPath(mPath, mPaint);
     }
 
-    boolean endDraw = true;
-    boolean lockInput;
-    long toastTime = System.currentTimeMillis();
-    float pPres = 0.5f;
+    private Boolean fingerOrPen = null; //true is finger, false is pen
+    private boolean endDraw = true;
+    private boolean lockInput;
+    private long toastTime = System.currentTimeMillis();
+    private float pPres = 0.5f;
+
+    ArrayList<String> cache = new ArrayList<>();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -59,11 +61,16 @@ public class DrawCanvas extends View {
         float mColor[] = {0, 1, 1};
 
         switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN: //touch down
+
+            //touch down
+            case MotionEvent.ACTION_DOWN:
                 fingerOrPen = event.getPressure() == 1;
                 if (endDraw) {
+                    cache.add(fingerOrPen ? "Finger\n" : "Pen\n");
                     lockInput = fingerOrPen;
                     endDraw = false;
+                    mDrawActivity.changeIcon("save_black");
+                    mDrawActivity.changeIcon("reset_black");
                 }
                 if (lockInput != fingerOrPen) {
                     makeToast();
@@ -71,11 +78,22 @@ public class DrawCanvas extends View {
                 }
                 mPath.moveTo(event.getX(), event.getY());
                 return true;
-            case MotionEvent.ACTION_MOVE:  //touch move
+
+            //touch move
+            case MotionEvent.ACTION_MOVE:
                 if (lockInput != fingerOrPen) {
                     makeToast();
                     return true;
                 }
+
+                if (lockInput) {
+                    //finger input
+                    cache.add(event.getX() + "," + event.getY() + "\n");
+                } else {
+                    //pen input
+                    cache.add(event.getX() + "," + event.getY() + "," + event.getPressure() + "\n");
+                }
+
                 mPath.lineTo(event.getX(), event.getY());
                 mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + mPres * 25);
                 mColor[0] = fingerOrPen ? 120 : mPres * 80 + 80;    //hue
@@ -86,25 +104,51 @@ public class DrawCanvas extends View {
                 mPath.moveTo(event.getX(), event.getY());
                 invalidate();
                 return true;
+
             default:
                 return true;
         }
     }
 
+    /* This function is called inside onTouchEvent
+       So make a 2 sec time check to prevent endless call
+    */
     public void makeToast() {
         if (System.currentTimeMillis() - toastTime > 2000) {
-            Toast.makeText(getContext(), "Please use pen or finger only", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mDrawActivity, "Please use pen or finger only", Toast.LENGTH_SHORT).show();
             toastTime = System.currentTimeMillis();
         }
     }
 
     public void reset() {
+        //check if anything drawn
+        if (fingerOrPen == null) {
+            Toast.makeText(mDrawActivity, "No need to reset", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //reset cache
+        cache.clear();
+
+        //reset assisted boolean
+        fingerOrPen = null;
         endDraw = true;
+
+        //reset canvas & icon color
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        mDrawActivity.changeIcon("save_gray");
+        mDrawActivity.changeIcon("reset_gray");
         invalidate();
+        Toast.makeText(mDrawActivity, "Reset successfully!", Toast.LENGTH_SHORT).show();
     }
 
     public void save() {
+
+        //check if anything drawn
+        if (fingerOrPen == null) {
+            Toast.makeText(mDrawActivity, "Nothing can be saved!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         //create folder
         String externalDataPath = Environment.getExternalStorageDirectory() + "/HWOutput";
@@ -118,10 +162,16 @@ public class DrawCanvas extends View {
         File file = new File(Environment.getExternalStorageDirectory(), "/HWOutput/output.csv");
         try {
             FileOutputStream fos = new FileOutputStream(file, true);
-            fos.write("test-hello\n".getBytes());
+
+            StringBuilder allCache = new StringBuilder();
+            for (String s : cache) {
+                allCache.append(s);
+            }
+
+            fos.write((allCache.toString() + "\n").getBytes());
             fos.flush();
             fos.close();
-            Toast.makeText(getContext(), fileCreated ? "Your Output will be saved to /HWOutput/output.csv" :
+            Toast.makeText(mDrawActivity, fileCreated ? "Your Output will be saved to /HWOutput/output.csv!" :
                     "New capture added successfully!", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
