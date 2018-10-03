@@ -115,7 +115,7 @@ public class DrawCanvas extends View {
     */
     public void makeToast() {
         if (System.currentTimeMillis() - toastTime > 2000) {
-            Toast.makeText(mDrawActivity, "Please use pen or finger only", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mDrawActivity, "Please use pen or finger only!", Toast.LENGTH_SHORT).show();
             toastTime = System.currentTimeMillis();
         }
     }
@@ -123,7 +123,7 @@ public class DrawCanvas extends View {
     public void reset() {
         //check if anything drawn
         if (fingerOrPen == null) {
-            Toast.makeText(mDrawActivity, "No need to reset", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mDrawActivity, "No need to reset!", Toast.LENGTH_SHORT).show();
             return;
         }
 
