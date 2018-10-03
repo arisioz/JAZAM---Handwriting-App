@@ -168,10 +168,10 @@ public class DrawCanvas extends View {
         endDraw = true;
 
         //reset canvas & icon color
-        mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         mDrawActivity.changeIcon("save_gray");
         mDrawActivity.changeIcon("reset_gray");
         mDrawActivity.changeIcon("play_gray");
+        mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         invalidate();
         Toast.makeText(mDrawActivity, "Reset successfully!", Toast.LENGTH_SHORT).show();
     }
@@ -269,6 +269,9 @@ public class DrawCanvas extends View {
                                 mDrawActivity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
+                                        if(fingerOrPen==null){  //reset while playing
+                                            return;
+                                        }
                                         if (o.isStartPoint) {
                                             drawTouchDown(o.x, o.y);
                                         } else {
