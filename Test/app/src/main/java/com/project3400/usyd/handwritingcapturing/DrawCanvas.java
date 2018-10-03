@@ -66,11 +66,13 @@ public class DrawCanvas extends View {
             case MotionEvent.ACTION_DOWN:
                 fingerOrPen = event.getPressure() == 1;
                 if (endDraw) {
-                    cache.add(fingerOrPen ? "Finger\n" : "Pen\n");
+                    cache.add(fingerOrPen ? "Finger,"+MainActivity.chosen_Shape.second+"\n" :
+                            "Pen,"+MainActivity.chosen_Shape.second+"\n");
                     lockInput = fingerOrPen;
                     endDraw = false;
                     mDrawActivity.changeIcon("save_black");
                     mDrawActivity.changeIcon("reset_black");
+                    mDrawActivity.changeIcon("play_black");
                 }
                 if (lockInput != fingerOrPen) {
                     makeToast();
@@ -138,6 +140,7 @@ public class DrawCanvas extends View {
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         mDrawActivity.changeIcon("save_gray");
         mDrawActivity.changeIcon("reset_gray");
+        mDrawActivity.changeIcon("play_gray");
         invalidate();
         Toast.makeText(mDrawActivity, "Reset successfully!", Toast.LENGTH_SHORT).show();
     }
@@ -177,4 +180,16 @@ public class DrawCanvas extends View {
             e.printStackTrace();
         }
     }
+
+    public void play() {
+
+        //check if anything drawn
+        if (fingerOrPen == null) {
+            Toast.makeText(mDrawActivity, "No sketch can be played!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+    }
+
 }

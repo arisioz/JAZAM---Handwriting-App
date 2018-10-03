@@ -13,6 +13,7 @@ public class DrawActivity extends Activity {
     private ImageButton imgbtn_back;
     private ImageButton imgbtn_reset;
     private ImageButton imgbtn_save;
+    private ImageButton imgbtn_play;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,15 +21,17 @@ public class DrawActivity extends Activity {
         setContentView(R.layout.activity_draw);
 
         ImageView img = findViewById(R.id.imgdraw);
-        img.setImageResource(MainActivity.chosen_Shape);
+        img.setImageResource(MainActivity.chosen_Shape.first);
 
         imgbtn_back = findViewById(R.id.imgbtn_back);
         imgbtn_reset = findViewById(R.id.imgbtn_reset);
         imgbtn_save = findViewById(R.id.imgbtn_save);
+        imgbtn_play = findViewById(R.id.imgbtn_play);
 
         imgbtn_back.setOnClickListener(tweakedOnClickListener);
         imgbtn_reset.setOnClickListener(tweakedOnClickListener);
         imgbtn_save.setOnClickListener(tweakedOnClickListener);
+        imgbtn_play.setOnClickListener(tweakedOnClickListener);
     }
 
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
@@ -44,6 +47,9 @@ public class DrawActivity extends Activity {
                 case R.id.imgbtn_save:
                     requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
                     ((DrawCanvas) findViewById(R.id.myCanvas)).save();
+                    break;
+                case R.id.imgbtn_play:
+                    ((DrawCanvas) findViewById(R.id.myCanvas)).play();
                     break;
                 default:
                     throw new RuntimeException("Unknown button ID");
@@ -62,6 +68,9 @@ public class DrawActivity extends Activity {
             case "reset_gray":
                 imgbtn_reset.setImageResource(R.drawable.reset_gray);
                 break;
+            case "play_gray":
+                imgbtn_play.setImageResource(R.drawable.play_gray);
+                break;
             case "back_black":
                 imgbtn_back.setImageResource(R.drawable.back_black);
                 break;
@@ -70,6 +79,9 @@ public class DrawActivity extends Activity {
                 break;
             case "reset_black":
                 imgbtn_reset.setImageResource(R.drawable.reset_black);
+                break;
+            case "play_black":
+                imgbtn_play.setImageResource(R.drawable.play_black);
                 break;
             default:
                 throw new RuntimeException("Unknown Icon change command");

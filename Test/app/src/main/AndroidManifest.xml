@@ -11,22 +11,30 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".InfoActivity">
+            android:parentActivityName=".InfoActivity"
+            android:screenOrientation="landscape">
+
         </activity>
+
         <activity
             android:name=".DrawActivity"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".MainActivity"/>
-        <activity
-            android:name=".InfoActivity">
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="landscape">
+
+        </activity>
+
+        <activity
+            android:name=".InfoActivity"
+            android:screenOrientation="landscape">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
 
         <meta-data
