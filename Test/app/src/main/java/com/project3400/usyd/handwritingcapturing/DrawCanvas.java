@@ -57,7 +57,7 @@ public class DrawCanvas extends View {
     private float pPres = 0.5f;
     private int day, month, year;
 
-    public ArrayList<Output> cache = new ArrayList<>();
+    ArrayList<Output> cache = new ArrayList<>();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -77,7 +77,7 @@ public class DrawCanvas extends View {
                     //record start time
                     Calendar now = Calendar.getInstance();
                     day = now.get(Calendar.DATE);
-                    month = now.get(Calendar.MONTH);
+                    month = now.get(Calendar.MONTH) + 1;
                     year = now.get(Calendar.YEAR);
 
                     lockInput = fingerOrPen;
@@ -88,7 +88,7 @@ public class DrawCanvas extends View {
                 }
                 if (lockInput != fingerOrPen) {
                     makeToast();
-                    return true;
+                    return false;
                 }
                 saveInputCache(event.getX(), event.getY(), event.getPressure(), true);
                 drawTouchDown(event.getX(), event.getY());
@@ -137,9 +137,9 @@ public class DrawCanvas extends View {
         float mPres = pPres + (pressure - pPres) / 4;  //smooth thickness change
         pPres = mPres;
         mPath.lineTo(x, y);
-        mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + mPres * 25);
-        mColor[0] = fingerOrPen ? 120 : mPres * 80 + 80;    //hue
-        mColor[1] = fingerOrPen ? 1 : mPres * 0.5f + 0.5f;  //saturation
+        mPaint.setStrokeWidth(lockInput ? 10 : 5 + mPres * 25);
+        mColor[0] = lockInput ? 120 : mPres * 80 + 80;    //hue
+        mColor[1] = lockInput ? 1 : mPres * 0.5f + 0.5f;  //saturation
         mPaint.setColor(Color.HSVToColor(mColor));
         mCanvas.drawPath(mPath, mPaint);
         mPath.reset();
@@ -200,7 +200,7 @@ public class DrawCanvas extends View {
             StringBuilder allCache = new StringBuilder();
 
             //write header
-            allCache.append(fingerOrPen ? "Finger," : "Pen,");
+            allCache.append(lockInput ? "Finger," : "Pen,");
             allCache.append(MainActivity.chosen_Shape.second);
             String time = "," + day + "/" + month + "/" + year + "\n";
             allCache.append(time);
@@ -208,7 +208,7 @@ public class DrawCanvas extends View {
             //write input cache
             for (Output o : cache) {
                 String line = to4f(o.x) + "," + to4f(o.y) + ",";
-                line += fingerOrPen ? "" : to4f(o.pressure) + ",";
+                line += lockInput ? "" : to4f(o.pressure) + ",";
                 line += new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).
                         format(new Date(System.currentTimeMillis())) + "\n";
                 allCache.append(line);
