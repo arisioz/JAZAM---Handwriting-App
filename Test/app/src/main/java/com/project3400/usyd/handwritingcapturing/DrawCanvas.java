@@ -9,7 +9,12 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.io.*;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class DrawCanvas extends View {
 
@@ -50,8 +55,9 @@ public class DrawCanvas extends View {
     private boolean lockInput;
     private long toastTime = System.currentTimeMillis();
     private float pPres = 0.5f;
+    private int day, month, year;
 
-    ArrayList<String> cache = new ArrayList<>();
+    ArrayList<Output> cache = new ArrayList<>();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -66,8 +72,13 @@ public class DrawCanvas extends View {
             case MotionEvent.ACTION_DOWN:
                 fingerOrPen = event.getPressure() == 1;
                 if (endDraw) {
-                    cache.add(fingerOrPen ? "Finger,"+MainActivity.chosen_Shape.second+"\n" :
-                            "Pen,"+MainActivity.chosen_Shape.second+"\n");
+
+                    //record start time
+                    Calendar now = Calendar.getInstance();
+                    day = now.get(Calendar.DATE);
+                    month = now.get(Calendar.MONTH);
+                    year = now.get(Calendar.YEAR);
+
                     lockInput = fingerOrPen;
                     endDraw = false;
                     mDrawActivity.changeIcon("save_black");
@@ -90,10 +101,11 @@ public class DrawCanvas extends View {
 
                 if (lockInput) {
                     //finger input
-                    cache.add(event.getX() + "," + event.getY() + "\n");
+
+                    cache.add(new Output(event.getX(), event.getY(), System.currentTimeMillis()));
                 } else {
                     //pen input
-                    cache.add(event.getX() + "," + event.getY() + "," + event.getPressure() + "\n");
+                    cache.add(new Output(event.getX(), event.getY(), event.getPressure(), System.currentTimeMillis()));
                 }
 
                 mPath.lineTo(event.getX(), event.getY());
@@ -145,6 +157,10 @@ public class DrawCanvas extends View {
         Toast.makeText(mDrawActivity, "Reset successfully!", Toast.LENGTH_SHORT).show();
     }
 
+    public String to4f(float num) {
+        return new DecimalFormat("0.0000").format(num);
+    }
+
     public void save() {
 
         //check if anything drawn
@@ -167,8 +183,21 @@ public class DrawCanvas extends View {
             FileOutputStream fos = new FileOutputStream(file, true);
 
             StringBuilder allCache = new StringBuilder();
-            for (String s : cache) {
-                allCache.append(s);
+
+            //write header
+            allCache.append(fingerOrPen ? "Finger," : "Pen,");
+            allCache.append(MainActivity.chosen_Shape.second);
+            String time = "," + day + "/" + month + "/" + year + "\n";
+            allCache.append(time);
+
+            //write input cache
+            for (Output o : cache) {
+                String line = to4f(o.x) + "," + to4f(o.y) + ",";
+                line += fingerOrPen ? "" : to4f(o.pressure) + ",";
+                line += new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).
+                        format(new Date(System.currentTimeMillis()));
+                line += "\n";
+                allCache.append(line);
             }
 
             fos.write((allCache.toString() + "\n").getBytes());
@@ -188,6 +217,10 @@ public class DrawCanvas extends View {
             Toast.makeText(mDrawActivity, "No sketch can be played!", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        //clean screen first
+        mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        invalidate();
 
 
     }
