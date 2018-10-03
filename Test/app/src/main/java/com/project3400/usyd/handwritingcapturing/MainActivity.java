@@ -83,8 +83,7 @@ public class MainActivity extends Activity {
             }
             // WILL ADD THAT TO THE DRAWACTIVITY
             attempts++;
-            Intent activity_Main_To_Draw = new Intent(MainActivity.this, DrawActivity.class);
-            startActivity(activity_Main_To_Draw);
+            startActivity(new Intent(MainActivity.this, DrawActivity.class));
         }
     };
 

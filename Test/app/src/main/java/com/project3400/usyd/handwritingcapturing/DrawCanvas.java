@@ -57,14 +57,15 @@ public class DrawCanvas extends View {
     private float pPres = 0.5f;
     private int day, month, year;
 
-    ArrayList<Output> cache = new ArrayList<>();
+    public ArrayList<Output> cache = new ArrayList<>();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        float mPres = pPres + (event.getPressure() - pPres) / 4;  //smooth thickness change
-        pPres = mPres;
-        float mColor[] = {0, 1, 1};
+        //you cannot draw while replaying
+        if (playThread.isAlive()) {
+            return false;
+        }
 
         switch (event.getAction()) {
 
@@ -89,7 +90,8 @@ public class DrawCanvas extends View {
                     makeToast();
                     return true;
                 }
-                mPath.moveTo(event.getX(), event.getY());
+                saveInputCache(event.getX(), event.getY(), event.getPressure(), true);
+                drawTouchDown(event.getX(), event.getY());
                 return true;
 
             //touch move
@@ -98,27 +100,9 @@ public class DrawCanvas extends View {
                     makeToast();
                     return true;
                 }
-
-                if (lockInput) {
-                    //finger input
-
-                    cache.add(new Output(event.getX(), event.getY(), System.currentTimeMillis()));
-                } else {
-                    //pen input
-                    cache.add(new Output(event.getX(), event.getY(), event.getPressure(), System.currentTimeMillis()));
-                }
-
-                mPath.lineTo(event.getX(), event.getY());
-                mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + mPres * 25);
-                mColor[0] = fingerOrPen ? 120 : mPres * 80 + 80;    //hue
-                mColor[1] = fingerOrPen ? 1 : mPres * 0.5f + 0.5f;  //saturation
-                mPaint.setColor(Color.HSVToColor(mColor));
-                mCanvas.drawPath(mPath, mPaint);
-                mPath.reset();
-                mPath.moveTo(event.getX(), event.getY());
-                invalidate();
+                saveInputCache(event.getX(), event.getY(), event.getPressure(), false);
+                drawTouchMove(event.getX(), event.getY(), event.getPressure());
                 return true;
-
             default:
                 return true;
         }
@@ -134,7 +118,42 @@ public class DrawCanvas extends View {
         }
     }
 
+    public void saveInputCache(float x, float y, float pressure, Boolean isStartPoint) {
+        if (lockInput) {
+            //finger input
+            cache.add(new Output(x, y, System.currentTimeMillis(), isStartPoint));
+        } else {
+            //pen input
+            cache.add(new Output(x, y, pressure, System.currentTimeMillis(), isStartPoint));
+        }
+    }
+
+    public void drawTouchDown(float x, float y) {
+        mPath.moveTo(x, y);
+    }
+
+    public void drawTouchMove(float x, float y, float pressure) {
+        float mColor[] = {0, 1, 1};
+        float mPres = pPres + (pressure - pPres) / 4;  //smooth thickness change
+        pPres = mPres;
+        mPath.lineTo(x, y);
+        mPaint.setStrokeWidth(fingerOrPen ? 10 : 5 + mPres * 25);
+        mColor[0] = fingerOrPen ? 120 : mPres * 80 + 80;    //hue
+        mColor[1] = fingerOrPen ? 1 : mPres * 0.5f + 0.5f;  //saturation
+        mPaint.setColor(Color.HSVToColor(mColor));
+        mCanvas.drawPath(mPath, mPaint);
+        mPath.reset();
+        mPath.moveTo(x, y);
+        invalidate();
+    }
+
     public void reset() {
+
+        //stop playing sketch if it is playing
+        if (playThread.isAlive()) {
+            playThread.interrupt();
+        }
+
         //check if anything drawn
         if (fingerOrPen == null) {
             Toast.makeText(mDrawActivity, "No need to reset!", Toast.LENGTH_SHORT).show();
@@ -155,10 +174,6 @@ public class DrawCanvas extends View {
         mDrawActivity.changeIcon("play_gray");
         invalidate();
         Toast.makeText(mDrawActivity, "Reset successfully!", Toast.LENGTH_SHORT).show();
-    }
-
-    public String to4f(float num) {
-        return new DecimalFormat("0.0000").format(num);
     }
 
     public void save() {
@@ -195,8 +210,7 @@ public class DrawCanvas extends View {
                 String line = to4f(o.x) + "," + to4f(o.y) + ",";
                 line += fingerOrPen ? "" : to4f(o.pressure) + ",";
                 line += new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).
-                        format(new Date(System.currentTimeMillis()));
-                line += "\n";
+                        format(new Date(System.currentTimeMillis())) + "\n";
                 allCache.append(line);
             }
 
@@ -210,7 +224,19 @@ public class DrawCanvas extends View {
         }
     }
 
+    public String to4f(float num) {
+        return new DecimalFormat("0.0000").format(num);
+    }
+
+    private Thread playThread = new Thread();
+
     public void play() {
+
+        //check if in play mode
+        if (playThread.isAlive()) {
+            Toast.makeText(mDrawActivity, "Sketch is playing!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         //check if anything drawn
         if (fingerOrPen == null) {
@@ -222,7 +248,47 @@ public class DrawCanvas extends View {
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         invalidate();
 
+        //change icon colour
+        mDrawActivity.changeIcon("play_gray");
 
+        //auto replay
+        playThread = new Thread() {
+            @Override
+            public void run() {
+                long preLineTime = cache.get(0).time;
+                for (int i = 0; i < cache.size(); i++) {
+                    final Output o = cache.get(i);
+                    final boolean last = i == cache.size() - 1;
+                    if (i == 0) {
+                        drawTouchDown(o.x, o.y);
+                    } else {
+                        try {
+                            synchronized (this) {
+                                //no more than 2s if two draw time gap is huge
+                                wait(o.time - preLineTime > 2000 ? 2000 : o.time - preLineTime);
+                                mDrawActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (o.isStartPoint) {
+                                            drawTouchDown(o.x, o.y);
+                                        } else {
+                                            drawTouchMove(o.x, o.y, o.pressure);
+                                        }
+                                        if (last) {
+                                            mDrawActivity.changeIcon("play_black");
+                                        }
+                                    }
+                                });
+
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    preLineTime = o.time;
+                }
+            }
+        };
+        playThread.start();
     }
-
 }

@@ -37,19 +37,20 @@ public class DrawActivity extends Activity {
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            DrawCanvas dc = ((DrawCanvas) findViewById(R.id.myCanvas));
             switch (v.getId()) {
                 case R.id.imgbtn_back:
                     startActivity(new Intent(DrawActivity.this, MainActivity.class));
                     break;
                 case R.id.imgbtn_reset:
-                    ((DrawCanvas) findViewById(R.id.myCanvas)).reset();
+                    dc.reset();
                     break;
                 case R.id.imgbtn_save:
                     requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
-                    ((DrawCanvas) findViewById(R.id.myCanvas)).save();
+                    dc.save();
                     break;
                 case R.id.imgbtn_play:
-                    ((DrawCanvas) findViewById(R.id.myCanvas)).play();
+                    dc.play();
                     break;
                 default:
                     throw new RuntimeException("Unknown button ID");
