@@ -210,7 +210,7 @@ public class DrawCanvas extends View {
                 String line = to4f(o.x) + "," + to4f(o.y) + ",";
                 line += lockInput ? "" : to4f(o.pressure) + ",";
                 line += new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).
-                        format(new Date(System.currentTimeMillis())) + "\n";
+                        format(new Date(o.time)) + "\n";
                 allCache.append(line);
             }
 
