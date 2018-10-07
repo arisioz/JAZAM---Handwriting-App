@@ -35,7 +35,7 @@ public class DrawCanvas extends View {
     private float pPres = 0.5f;
     private int day, month, year;
 
-    ArrayList<Output> cache = new ArrayList<>();
+    ArrayList<ShapeData> cache = new ArrayList<>();
 
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
@@ -54,7 +54,7 @@ public class DrawCanvas extends View {
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
 
-        //playing tutorial
+        //playing tutorial when activity starts
         playing(shapeMaker("Circle"));
     }
 
@@ -128,10 +128,10 @@ public class DrawCanvas extends View {
     public void saveInputCache(float x, float y, float pressure, Boolean isStartPoint) {
         if (lockInput) {
             //finger input
-            cache.add(new Output(x, y, System.currentTimeMillis(), isStartPoint));
+            cache.add(new ShapeData(x, y, System.currentTimeMillis(), isStartPoint));
         } else {
             //pen input
-            cache.add(new Output(x, y, pressure, System.currentTimeMillis(), isStartPoint));
+            cache.add(new ShapeData(x, y, pressure, System.currentTimeMillis(), isStartPoint));
         }
     }
 
@@ -221,18 +221,18 @@ public class DrawCanvas extends View {
             allCache.append(time);
 
             //write input cache
-            for (Output o : cache) {
-                String line = to4f(o.x) + "," + to4f(o.y) + ",";
-                line += lockInput ? "" : to4f(o.pressure) + ",";
+            for (ShapeData sd : cache) {
+                String line = to4f(sd.x) + "," + to4f(sd.y) + ",";
+                line += lockInput ? "" : to4f(sd.pressure) + ",";
                 line += new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).
-                        format(new Date(o.time)) + "\n";
+                        format(new Date(sd.time)) + "\n";
                 allCache.append(line);
             }
 
             fos.write((allCache.toString() + "\n").getBytes());
             fos.flush();
             fos.close();
-            Toast.makeText(mDrawActivity, fileCreated ? "Your Output will be saved to /HWOutput/output.csv!" :
+            Toast.makeText(mDrawActivity, fileCreated ? "Your ShapeData will be saved to /HWOutput/output.csv!" :
                     "New capture added successfully!", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -269,7 +269,7 @@ public class DrawCanvas extends View {
         playing(cache);
     }
 
-    public void playing(final ArrayList<Output> al) {
+    public void playing(final ArrayList<ShapeData> al) {
         if (demo) {
             lockInput = true;
             fingerOrPen = true;
@@ -280,15 +280,15 @@ public class DrawCanvas extends View {
             public void run() {
                 long preLineTime = al.get(0).time;
                 for (int i = 0; i < al.size(); i++) {
-                    final Output o = al.get(i);
+                    final ShapeData sd = al.get(i);
                     final boolean last = i == al.size() - 1;
                     if (i == 0) {
-                        drawTouchDown(o.x, o.y);
+                        drawTouchDown(sd.x, sd.y);
                     } else {
                         try {
                             synchronized (this) {
                                 //no more than 2s if two draw time gap is huge
-                                wait(o.time - preLineTime > 2000 ? 2000 : o.time - preLineTime);
+                                wait(sd.time - preLineTime > 2000 ? 2000 : sd.time - preLineTime);
 
                                 mDrawActivity.runOnUiThread(new Runnable() {
                                     @Override
@@ -297,10 +297,10 @@ public class DrawCanvas extends View {
                                             forceStop = false;
                                             return;
                                         }
-                                        if (o.isStartPoint) {
-                                            drawTouchDown(o.x, o.y);
+                                        if (sd.isStartPoint) {
+                                            drawTouchDown(sd.x, sd.y);
                                         } else {
-                                            drawTouchMove(o.x, o.y, o.pressure);
+                                            drawTouchMove(sd.x, sd.y, sd.pressure);
                                         }
                                         if (last) {
                                             if (!demo) {
@@ -315,25 +315,25 @@ public class DrawCanvas extends View {
                             e.printStackTrace();
                         }
                     }
-                    preLineTime = o.time;
+                    preLineTime = sd.time;
                 }
             }
         };
         playThread.start();
     }
 
-    public void instantDraw(ArrayList<Output> al) {
+    public void instantDraw(ArrayList<ShapeData> al) {
         demo = true;
         boolean tmplI = lockInput;
         Boolean tmpfOP = fingerOrPen;
         lockInput = true;
         fingerOrPen = true;
         for (int i = 0; i < al.size(); i++) {
-            Output o = al.get(i);
-            if (o.isStartPoint) {
-                drawTouchDown(o.x, o.y);
+            ShapeData sd = al.get(i);
+            if (sd.isStartPoint) {
+                drawTouchDown(sd.x, sd.y);
             } else {
-                drawTouchMove(o.x, o.y, o.pressure);
+                drawTouchMove(sd.x, sd.y, sd.pressure);
             }
         }
         lockInput = tmplI;
@@ -341,9 +341,9 @@ public class DrawCanvas extends View {
         demo = false;
     }
 
-    public ArrayList<Output> shapeMaker(String shapeType) {
+    public ArrayList<ShapeData> shapeMaker(String shapeType) {
 
-        ArrayList<Output> shape = new ArrayList<>();
+        ArrayList<ShapeData> shape = new ArrayList<>();
 
         switch (shapeType) {
 
@@ -353,10 +353,10 @@ public class DrawCanvas extends View {
                     float x = (float) (this.getWidth() / 2 + this.getWidth() / 5 * Math.cos(2 * Math.PI / 200 * i - Math.PI / 2));
                     float y = (float) (this.getHeight() / 2 + this.getWidth() / 5 * Math.sin(2 * Math.PI / 200 * i - Math.PI / 2));
                     if (i == 0) {
-                        shape.add(new Output(x, y, 1, true));
+                        shape.add(new ShapeData(x, y, 1, true));
                         continue;
                     }
-                    shape.add(new Output(x, y, i * 8, false));
+                    shape.add(new ShapeData(x, y, i * 8, false));
                 }
                 break;
 
