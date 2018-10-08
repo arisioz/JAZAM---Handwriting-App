@@ -31,7 +31,7 @@
 
     <EditText
         android:id="@+id/FIRST_NAME"
-        android:layout_width="157dp"
+        android:layout_width="202dp"
         android:layout_height="40dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
@@ -46,10 +46,10 @@
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/EMAIL"
         app:layout_constraintEnd_toStartOf="@+id/LAST_NAME"
-        app:layout_constraintHorizontal_bias="0.25"
+        app:layout_constraintHorizontal_bias="0.253"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.588" />
+        app:layout_constraintVertical_bias="0.584" />
 
     <EditText
         android:id="@+id/LAST_NAME"

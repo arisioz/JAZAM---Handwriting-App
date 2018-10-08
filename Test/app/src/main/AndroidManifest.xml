@@ -14,20 +14,6 @@
 
         <activity
             android:name=".MainActivity"
-            android:parentActivityName=".InfoActivity"
-            android:screenOrientation="landscape">
-
-        </activity>
-
-        <activity
-            android:name=".DrawActivity"
-            android:parentActivityName=".MainActivity"
-            android:screenOrientation="landscape">
-
-        </activity>
-
-        <activity
-            android:name=".InfoActivity"
             android:screenOrientation="landscape">
 
             <intent-filter>
@@ -35,6 +21,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+        </activity>
+
+        <activity
+            android:name=".DrawActivity"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="landscape">
         </activity>
 
         <meta-data

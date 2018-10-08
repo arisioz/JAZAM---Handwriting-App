@@ -1,15 +1,23 @@
 package com.project3400.usyd.handwritingcapturing;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.util.Pair;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Locale;
@@ -19,6 +27,9 @@ import java.util.Calendar;
 
 public class MainActivity extends Activity {
 
+    EditText un, age;
+    RadioButton male,female;
+    private String gender_value;
     public static int attempts;
     public static Pair<Integer,String> chosen_Shape;
     private Button button_Upload;
@@ -37,14 +48,12 @@ public class MainActivity extends Activity {
         image_Button_2 = findViewById(R.id.imgbtn2);
         image_Button_3 = findViewById(R.id.imgbtn3);
         image_Button_Random = findViewById(R.id.imgbtnRd);
-        // HERE
         button_Upload = findViewById(R.id.button);
 
         image_Button_1.setOnClickListener(tweakedOnClickListener);
         image_Button_2.setOnClickListener(tweakedOnClickListener);
         image_Button_3.setOnClickListener(tweakedOnClickListener);
         image_Button_Random.setOnClickListener(tweakedOnClickListener);
-        // HERE
         button_Upload.setOnClickListener(tweakedOnClickListener);
     }
 
@@ -76,7 +85,7 @@ public class MainActivity extends Activity {
                     }
                     break;
                 case R.id.button:
-                    sendCsvViaEmail();
+                    uploadDialog();
                     return;
                 default:
                     throw new RuntimeException("Unknown button ID");
@@ -87,7 +96,54 @@ public class MainActivity extends Activity {
         }
     };
 
+    public void RadioButtonClicked(View view) {
+        boolean is_checked = ((RadioButton) view).isChecked();
+        switch (view.getId()) {
+            case R.id.radio_male:
+                if (is_checked) {
+                    gender_value = "Male";
+                } else {
+                    male.setChecked(false);
+                }
+            case R.id.radio_female:
+                if (is_checked) {
+                    gender_value = "Female";
+                } else {
+                    female.setChecked(false);
+                }
+        }
+    }
+
+    private void uploadDialog () {
+
+        // Create the Dialog with two buttons
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+        builder.setView(inflater.inflate(R.layout.dialog, null)).setPositiveButton(getString(R.string.Sendstring), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int id) {
+
+                un = (EditText) findViewById(R.id.username);
+                age = (EditText) findViewById(R.id.Age);
+                male = (RadioButton) findViewById(R.id.radio_male);
+                female = (RadioButton) findViewById(R.id.radio_female);
+
+                //un.getText().toString();
+                /*String user_age = (String) age.getText().toString();
+                String user_gender = (String) gender_value;*/
+
+                sendCsvViaEmail();
+            }
+        }).setNegativeButton(getString(R.string.Cancelstring), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int id) {
+                dialogInterface.dismiss();
+            }
+        }).show();
+    }
+
     private void sendCsvViaEmail(){
+
         File filelocation = new File(Environment.getExternalStorageDirectory() + "/HWOutput/output.csv");
         if (!filelocation.exists()) {
             Toast.makeText(MainActivity.this, "No CSV file found, you have to make at least one sketch", Toast.LENGTH_SHORT).show();
@@ -98,7 +154,7 @@ public class MainActivity extends Activity {
         emailIntent.setType("vnd.android.cursor.dir/email");
         String subject = "Handwriting Data Capture";
         String TimeNow = Calendar.getInstance().getTime().toString();
-        String bodyText = "Attached you will find the data capture CSV file from: " + "INSERT USER" + " on: " + TimeNow + " who attempted " + attempts + ((attempts == 1) ? " sketch." : " different sketches.");
+        String bodyText = "Attached you will find the data capture CSV file from: " + "INSERT USER" + gender_value + " on: " + TimeNow + " who attempted " + attempts + ((attempts == 1) ? " sketch." : " different sketches.");
         String mail_Contents = "mailto:siozaris@outlook.com" +
                 "?cc=" + "siozaris@outlook.com" +
                 "&subject=" + Uri.encode(subject) +
