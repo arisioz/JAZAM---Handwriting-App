@@ -14,6 +14,7 @@ public class DrawActivity extends Activity {
     private ImageButton imgbtn_reset;
     private ImageButton imgbtn_save;
     private ImageButton imgbtn_play;
+    DrawCanvas dc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +38,8 @@ public class DrawActivity extends Activity {
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            DrawCanvas dc = ((DrawCanvas) findViewById(R.id.myCanvas));
+
+            dc = findViewById(R.id.myCanvas);
             switch (v.getId()) {
                 case R.id.imgbtn_back:
                     startActivity(new Intent(DrawActivity.this, MainActivity.class));

@@ -18,12 +18,24 @@ import java.util.Locale;
 
 public class DrawCanvas extends View {
 
-    private static Bitmap mBitmap;
-    private static Canvas mCanvas;
+    private Bitmap mBitmap;
+    private Canvas mCanvas;
     private Path mPath = new Path();
     private Paint mPaint = new Paint();
     private Paint mBitmapPaint = new Paint(Paint.DITHER_FLAG);
     private DrawActivity mDrawActivity = (DrawActivity) getContext();
+
+    private boolean demo = true;
+    private boolean forceStop = false;  //reset while sketch is playing
+
+    private Boolean fingerOrPen = null; //true is finger, false is pen
+    private boolean endDraw = true;
+    private boolean lockInput;
+    private long toastTime = System.currentTimeMillis();
+    private float pPres = 0.5f;
+    private int day, month, year;
+
+    ArrayList<ShapeData> cache = new ArrayList<>();
 
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
@@ -41,6 +53,9 @@ public class DrawCanvas extends View {
         super.onSizeChanged(width, height, preWidth, preHeight);
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
+
+        //playing tutorial when activity starts
+        playing(shapeMaker("Circle"));
     }
 
     @Override
@@ -50,14 +65,6 @@ public class DrawCanvas extends View {
         canvas.drawPath(mPath, mPaint);
     }
 
-    private Boolean fingerOrPen = null; //true is finger, false is pen
-    private boolean endDraw = true;
-    private boolean lockInput;
-    private long toastTime = System.currentTimeMillis();
-    private float pPres = 0.5f;
-    private int day, month, year;
-
-    ArrayList<Output> cache = new ArrayList<>();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -121,10 +128,10 @@ public class DrawCanvas extends View {
     public void saveInputCache(float x, float y, float pressure, Boolean isStartPoint) {
         if (lockInput) {
             //finger input
-            cache.add(new Output(x, y, System.currentTimeMillis(), isStartPoint));
+            cache.add(new ShapeData(x, y, System.currentTimeMillis(), isStartPoint));
         } else {
             //pen input
-            cache.add(new Output(x, y, pressure, System.currentTimeMillis(), isStartPoint));
+            cache.add(new ShapeData(x, y, pressure, System.currentTimeMillis(), isStartPoint));
         }
     }
 
@@ -133,6 +140,7 @@ public class DrawCanvas extends View {
     }
 
     public void drawTouchMove(float x, float y, float pressure) {
+
         float mColor[] = {0, 1, 1};
         float mPres = pPres + (pressure - pPres) / 4;  //smooth thickness change
         pPres = mPres;
@@ -140,6 +148,11 @@ public class DrawCanvas extends View {
         mPaint.setStrokeWidth(lockInput ? 10 : 5 + mPres * 25);
         mColor[0] = lockInput ? 120 : mPres * 80 + 80;    //hue
         mColor[1] = lockInput ? 1 : mPres * 0.5f + 0.5f;  //saturation
+
+        if (demo) {
+            mColor[0] = mColor[1] = mColor[2] = 0;
+        }
+
         mPaint.setColor(Color.HSVToColor(mColor));
         mCanvas.drawPath(mPath, mPaint);
         mPath.reset();
@@ -152,10 +165,11 @@ public class DrawCanvas extends View {
         //stop playing sketch if it is playing
         if (playThread.isAlive()) {
             playThread.interrupt();
+            forceStop = true;
         }
 
         //check if anything drawn
-        if (fingerOrPen == null) {
+        if (cache.size() <= 0) {
             Toast.makeText(mDrawActivity, "No need to reset!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -173,13 +187,14 @@ public class DrawCanvas extends View {
         mDrawActivity.changeIcon("play_gray");
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         invalidate();
+        instantDraw(shapeMaker("Circle"));
         Toast.makeText(mDrawActivity, "Reset successfully!", Toast.LENGTH_SHORT).show();
     }
 
     public void save() {
 
         //check if anything drawn
-        if (fingerOrPen == null) {
+        if (cache.size() <= 0) {
             Toast.makeText(mDrawActivity, "Nothing can be saved!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -206,18 +221,18 @@ public class DrawCanvas extends View {
             allCache.append(time);
 
             //write input cache
-            for (Output o : cache) {
-                String line = to4f(o.x) + "," + to4f(o.y) + ",";
-                line += lockInput ? "" : to4f(o.pressure) + ",";
+            for (ShapeData sd : cache) {
+                String line = to4f(sd.x) + "," + to4f(sd.y) + ",";
+                line += lockInput ? "" : to4f(sd.pressure) + ",";
                 line += new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).
-                        format(new Date(o.time)) + "\n";
+                        format(new Date(sd.time)) + "\n";
                 allCache.append(line);
             }
 
             fos.write((allCache.toString() + "\n").getBytes());
             fos.flush();
             fos.close();
-            Toast.makeText(mDrawActivity, fileCreated ? "Your Output will be saved to /HWOutput/output.csv!" :
+            Toast.makeText(mDrawActivity, fileCreated ? "Your ShapeData will be saved to /HWOutput/output.csv!" :
                     "New capture added successfully!", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -239,59 +254,122 @@ public class DrawCanvas extends View {
         }
 
         //check if anything drawn
-        if (fingerOrPen == null) {
+        if (cache.size() <= 0) {
             Toast.makeText(mDrawActivity, "No sketch can be played!", Toast.LENGTH_SHORT).show();
             return;
         }
 
         //clean screen first
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        instantDraw(shapeMaker("Circle"));
         invalidate();
 
         //change icon colour
         mDrawActivity.changeIcon("play_gray");
+        playing(cache);
+    }
 
+    public void playing(final ArrayList<ShapeData> al) {
+        if (demo) {
+            lockInput = true;
+            fingerOrPen = true;
+        }
         //auto replay
         playThread = new Thread() {
             @Override
             public void run() {
-                long preLineTime = cache.get(0).time;
-                for (int i = 0; i < cache.size(); i++) {
-                    final Output o = cache.get(i);
-                    final boolean last = i == cache.size() - 1;
+                long preLineTime = al.get(0).time;
+                for (int i = 0; i < al.size(); i++) {
+                    final ShapeData sd = al.get(i);
+                    final boolean last = i == al.size() - 1;
                     if (i == 0) {
-                        drawTouchDown(o.x, o.y);
+                        drawTouchDown(sd.x, sd.y);
                     } else {
                         try {
                             synchronized (this) {
                                 //no more than 2s if two draw time gap is huge
-                                wait(o.time - preLineTime > 2000 ? 2000 : o.time - preLineTime);
+                                wait(sd.time - preLineTime > 2000 ? 2000 : sd.time - preLineTime);
+
                                 mDrawActivity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if(fingerOrPen==null){  //reset while playing
+                                        if (forceStop) {  //reset while playing
+                                            forceStop = false;
                                             return;
                                         }
-                                        if (o.isStartPoint) {
-                                            drawTouchDown(o.x, o.y);
+                                        if (sd.isStartPoint) {
+                                            drawTouchDown(sd.x, sd.y);
                                         } else {
-                                            drawTouchMove(o.x, o.y, o.pressure);
+                                            drawTouchMove(sd.x, sd.y, sd.pressure);
                                         }
                                         if (last) {
-                                            mDrawActivity.changeIcon("play_black");
+                                            if (!demo) {
+                                                mDrawActivity.changeIcon("play_black");
+                                            }
+                                            demo = false;
                                         }
                                     }
                                 });
-
                             }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                    preLineTime = o.time;
+                    preLineTime = sd.time;
                 }
             }
         };
         playThread.start();
+    }
+
+    public void instantDraw(ArrayList<ShapeData> al) {
+        demo = true;
+        boolean tmplI = lockInput;
+        Boolean tmpfOP = fingerOrPen;
+        lockInput = true;
+        fingerOrPen = true;
+        for (int i = 0; i < al.size(); i++) {
+            ShapeData sd = al.get(i);
+            if (sd.isStartPoint) {
+                drawTouchDown(sd.x, sd.y);
+            } else {
+                drawTouchMove(sd.x, sd.y, sd.pressure);
+            }
+        }
+        lockInput = tmplI;
+        fingerOrPen = tmpfOP;
+        demo = false;
+    }
+
+    public ArrayList<ShapeData> shapeMaker(String shapeType) {
+
+        ArrayList<ShapeData> shape = new ArrayList<>();
+
+        switch (shapeType) {
+
+            case "Circle":
+                for (int i = 0; i < 200; i++) {
+                    //x=a+rcost y=b+rsint    math.sin from 0 to 2pi
+                    float x = (float) (this.getWidth() / 2 + this.getWidth() / 5 * Math.cos(2 * Math.PI / 200 * i - Math.PI / 2));
+                    float y = (float) (this.getHeight() / 2 + this.getWidth() / 5 * Math.sin(2 * Math.PI / 200 * i - Math.PI / 2));
+                    if (i == 0) {
+                        shape.add(new ShapeData(x, y, 1, true));
+                        continue;
+                    }
+                    shape.add(new ShapeData(x, y, i * 8, false));
+                }
+                break;
+
+            case "Square":
+
+                break;
+
+            case "Triangle":
+
+                break;
+            default:
+                break;
+        }
+        return shape;
     }
 }
