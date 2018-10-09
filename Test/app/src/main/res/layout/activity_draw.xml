@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:isScrollContainer="false"
-    tools:context="com.project3400.usyd.handwritingcapturing.DrawActivity">
+    tools:context="com.isys3400.usyd.handwritingcapturing.DrawActivity">
 
     <ImageView
 
@@ -29,29 +29,7 @@
         app:layout_constraintWidth_percent=".6" />
 
 
-    <ImageView
-
-        android:id="@+id/imgdraw"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:scaleType="fitStart"
-        android:src="@drawable/qm"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_default="percent"
-        app:layout_constraintHeight_percent=".3"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/tracepad"
-        app:layout_constraintTop_toTopOf="@+id/tracepad"
-        app:layout_constraintVertical_bias="0.0"
-        app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".15" />
-
-
-    <com.project3400.usyd.handwritingcapturing.DrawCanvas
+    <com.isys3400.usyd.handwritingcapturing.DrawCanvas
         android:id="@+id/myCanvas"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -160,5 +138,21 @@
         app:layout_constraintVertical_bias="0.985"
         app:layout_constraintWidth_default="percent"
         app:layout_constraintWidth_percent=".06" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Trace the Shape"
+        android:textSize="36sp"
+        app:layout_constraintBottom_toTopOf="@+id/myCanvas"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.492" />
 
 </android.support.constraint.ConstraintLayout>

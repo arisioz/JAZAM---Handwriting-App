@@ -1,4 +1,4 @@
-package com.project3400.usyd.handwritingcapturing;
+package com.isys3400.usyd.handwritingcapturing;
 
 import android.graphics.*;
 import android.content.Context;
@@ -35,6 +35,7 @@ public class DrawCanvas extends View {
     private float pPres = 0.5f;
     private int day, month, year;
 
+    ArrayList<ShapeData> chosenShape = new ArrayList<>();
     ArrayList<ShapeData> cache = new ArrayList<>();
 
     public DrawCanvas(Context c, AttributeSet attrs) {
@@ -55,7 +56,8 @@ public class DrawCanvas extends View {
         mCanvas = new Canvas(mBitmap);
 
         //playing tutorial when activity starts
-        playing(shapeMaker("Circle"));
+        shapeMaker(MainActivity.chosenShape);
+        playing(chosenShape);
     }
 
     @Override
@@ -187,7 +189,7 @@ public class DrawCanvas extends View {
         mDrawActivity.changeIcon("play_gray");
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         invalidate();
-        instantDraw(shapeMaker("Circle"));
+        instantDraw(chosenShape);
         Toast.makeText(mDrawActivity, "Reset successfully!", Toast.LENGTH_SHORT).show();
     }
 
@@ -216,9 +218,11 @@ public class DrawCanvas extends View {
 
             //write header
             allCache.append(lockInput ? "Finger," : "Pen,");
-            allCache.append(MainActivity.chosen_Shape.second);
+            allCache.append(MainActivity.chosenShape);
             String time = "," + day + "/" + month + "/" + year + "\n";
             allCache.append(time);
+            String attrs = lockInput?"X,Y,Time\n":"X,Y,Pressure,Time\n";
+            allCache.append(attrs);
 
             //write input cache
             for (ShapeData sd : cache) {
@@ -261,7 +265,7 @@ public class DrawCanvas extends View {
 
         //clean screen first
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        instantDraw(shapeMaker("Circle"));
+        instantDraw(chosenShape);
         invalidate();
 
         //change icon colour
@@ -341,35 +345,78 @@ public class DrawCanvas extends View {
         demo = false;
     }
 
-    public ArrayList<ShapeData> shapeMaker(String shapeType) {
-
-        ArrayList<ShapeData> shape = new ArrayList<>();
-
+    public void shapeMaker(String shapeType) {
+        float x = 0;
+        float y = 0;
         switch (shapeType) {
-
             case "Circle":
-                for (int i = 0; i < 200; i++) {
+                for (int i = 0; i <= 200; i++) {
                     //x=a+rcost y=b+rsint    math.sin from 0 to 2pi
-                    float x = (float) (this.getWidth() / 2 + this.getWidth() / 5 * Math.cos(2 * Math.PI / 200 * i - Math.PI / 2));
-                    float y = (float) (this.getHeight() / 2 + this.getWidth() / 5 * Math.sin(2 * Math.PI / 200 * i - Math.PI / 2));
-                    if (i == 0) {
-                        shape.add(new ShapeData(x, y, 1, true));
-                        continue;
-                    }
-                    shape.add(new ShapeData(x, y, i * 8, false));
+                    x = (float) (this.getWidth() / 2 + this.getWidth() / 5 * Math.cos(2 * Math.PI / 200 * i - Math.PI / 2));
+                    y = (float) (this.getHeight() / 2 + this.getWidth() / 5 * Math.sin(2 * Math.PI / 200 * i - Math.PI / 2));
+                    addToShape(i, x, y, 8);
                 }
                 break;
 
             case "Square":
-
+                float half = (float) this.getWidth() / 5;
+                for (int i = 0; i <= 200; i++) {
+                    if (i >= 0 && i < 50) {
+                        x = this.getWidth() / 2 - half + half * 2 / 50 * i;
+                        y = this.getHeight() / 2 - half;
+                    } else if (i >= 50 && i < 100) {
+                        x = this.getWidth() / 2 + half;
+                        y = this.getHeight() / 2 - half + half * 2 / 50 * (i - 50);
+                    } else if (i >= 100 && i < 150) {
+                        x = this.getWidth() / 2 + half - half * 2 / 50 * (i - 100);
+                        y = this.getHeight() / 2 + half;
+                    } else if (i >= 150 && i <= 200) {
+                        x = this.getWidth() / 2 - half;
+                        y = this.getHeight() / 2 + half - half * 2 / 50 * (i - 150);
+                    }
+                    addToShape(i, x, y, 8);
+                }
                 break;
 
             case "Triangle":
-
+                float centreDist = (float) (this.getWidth() / 4.5);
+                float sideLength = (float) (centreDist * Math.sin(Math.PI / 3 * 2) / Math.sin(Math.PI / 6));
+                for (int i = 0; i <= 180; i++) {
+                    if (i >= 0 && i < 60) {
+                        x = (float) (this.getWidth() / 2 + sideLength * Math.sin(Math.PI / 6) / 60 * i);
+                        y = (float) (this.getHeight() / 1.75 - centreDist + sideLength * Math.cos(Math.PI / 6) / 60 * i);
+                    } else if (i >= 60 && i < 120) {
+                        x = this.getWidth() / 2 + (float) (Math.cos(Math.PI / 6) * centreDist) - sideLength / 60 * (i - 60);
+                        y = (float) (this.getHeight() / 1.75) + (float) (Math.sin(Math.PI / 6) * centreDist);
+                    } else if (i >= 120 && i <= 180) {
+                        x = (float) (this.getWidth() / 2 - (Math.cos(Math.PI / 6) * centreDist) + sideLength * Math.sin(Math.PI / 6) / 60 * (i - 120));
+                        y = (float) (this.getHeight() / 1.75 + (Math.sin(Math.PI / 6) * centreDist) - sideLength * Math.cos(Math.PI / 6) / 60 * (i - 120));
+                    }
+                    addToShape(i, x, y, 8);
+                }
                 break;
+
+            case "Spiral":
+                float radius = (float) this.getWidth() / 40;
+                for (int i = 0; i <= 200; i++) {
+                    //x=a+rcost y=b+rsint    math.sin from 0 to 2pi
+                    x = (float) (this.getWidth() / 2 + radius * Math.cos(6.25 * Math.PI / 200 * i - Math.PI / 2));
+                    y = (float) (this.getHeight() / 2 + radius * Math.sin(6.25 * Math.PI / 200 * i - Math.PI / 2));
+                    radius += 1;
+                    addToShape(i, x, y, 8);
+                }
+                break;
+
             default:
                 break;
         }
-        return shape;
+    }
+
+    public void addToShape(int index, float x, float y, int speed) {
+        if (index == 0) {
+            chosenShape.add(new ShapeData(x, y, 1, true));
+        } else {
+            chosenShape.add(new ShapeData(x, y, index * speed, false));
+        }
     }
 }

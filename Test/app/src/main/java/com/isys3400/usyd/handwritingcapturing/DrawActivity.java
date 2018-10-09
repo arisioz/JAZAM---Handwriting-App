@@ -1,12 +1,12 @@
-package com.project3400.usyd.handwritingcapturing;
+package com.isys3400.usyd.handwritingcapturing;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 
 public class DrawActivity extends Activity {
 
@@ -21,8 +21,8 @@ public class DrawActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_draw);
 
-        ImageView img = findViewById(R.id.imgdraw);
-        img.setImageResource(MainActivity.chosen_Shape.first);
+        ActionBar actionBar = getActionBar();
+        actionBar.hide();
 
         imgbtn_back = findViewById(R.id.imgbtn_back);
         imgbtn_reset = findViewById(R.id.imgbtn_reset);

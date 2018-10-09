@@ -1,4 +1,4 @@
-package com.project3400.usyd.handwritingcapturing;
+package com.isys3400.usyd.handwritingcapturing;
 
 public class ShapeData {
 

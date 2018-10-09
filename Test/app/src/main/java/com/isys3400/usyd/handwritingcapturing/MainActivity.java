@@ -1,5 +1,6 @@
-package com.project3400.usyd.handwritingcapturing;
+package com.isys3400.usyd.handwritingcapturing;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -8,53 +9,60 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.Button;
-import android.widget.RadioButton;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
-import java.util.Locale;
 import java.util.Random;
 import java.io.File;
 import java.util.Calendar;
 
 public class MainActivity extends Activity {
 
-    EditText un, age;
-    RadioButton male,female;
+    private View view = null;
+
+    private EditText userName, age;
+    private RadioButton male, female;
     private String gender_value;
     public static int attempts;
-    public static Pair<Integer,String> chosen_Shape;
+    public static String chosenShape;
     private Button button_Upload;
     private ImageButton image_Button_1;
     private ImageButton image_Button_2;
     private ImageButton image_Button_3;
+    private ImageButton image_Button_4;
     private ImageButton image_Button_Random;
-    private final int possible_Shapes[] = {R.drawable.triangle, R.drawable.circle, R.drawable.square};
+    private final String shapes[] = {"Triangle", "Circle", "Square", "Spiral"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ActionBar actionBar = getActionBar();
+        actionBar.hide();
+
         image_Button_1 = findViewById(R.id.imgbtn1);
         image_Button_2 = findViewById(R.id.imgbtn2);
         image_Button_3 = findViewById(R.id.imgbtn3);
+        image_Button_4 = findViewById(R.id.imgbtn4);
         image_Button_Random = findViewById(R.id.imgbtnRd);
+        // HERE
         button_Upload = findViewById(R.id.button);
 
         image_Button_1.setOnClickListener(tweakedOnClickListener);
         image_Button_2.setOnClickListener(tweakedOnClickListener);
         image_Button_3.setOnClickListener(tweakedOnClickListener);
+        image_Button_4.setOnClickListener(tweakedOnClickListener);
         image_Button_Random.setOnClickListener(tweakedOnClickListener);
+        // HERE
         button_Upload.setOnClickListener(tweakedOnClickListener);
+
+        view = MainActivity.this.getLayoutInflater().inflate(R.layout.dialog, null);
+        userName = view.findViewById(R.id.username);
+        age = view.findViewById(R.id.Age);
+        male = view.findViewById(R.id.radio_male);
+        female = view.findViewById(R.id.radio_female);
     }
 
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
@@ -62,27 +70,20 @@ public class MainActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.imgbtn1:
-                    chosen_Shape = Pair.create(possible_Shapes[0],"Triangle");
+                    chosenShape = shapes[0];
                     break;
                 case R.id.imgbtn2:
-                    chosen_Shape = Pair.create(possible_Shapes[1],"Circle");
+                    chosenShape = shapes[1];
                     break;
                 case R.id.imgbtn3:
-                    chosen_Shape = Pair.create(possible_Shapes[2],"Square");
+                    chosenShape = shapes[2];
+                    break;
+                case R.id.imgbtn4:
+                    chosenShape = shapes[3];
                     break;
                 case R.id.imgbtnRd:
-                    int rndNum = new Random().nextInt(possible_Shapes.length);
-                    switch(rndNum){
-                        case 0:
-                            chosen_Shape = Pair.create(possible_Shapes[0],"Triangle");
-                            break;
-                        case 1:
-                            chosen_Shape = Pair.create(possible_Shapes[1],"Circle");
-                            break;
-                        case 2:
-                            chosen_Shape = Pair.create(possible_Shapes[2],"Square");
-                            break;
-                    }
+                    int rndNum = new Random().nextInt(shapes.length);
+                    chosenShape = shapes[rndNum];
                     break;
                 case R.id.button:
                     uploadDialog();
@@ -105,33 +106,34 @@ public class MainActivity extends Activity {
                 } else {
                     male.setChecked(false);
                 }
+                break;
             case R.id.radio_female:
                 if (is_checked) {
                     gender_value = "Female";
                 } else {
                     female.setChecked(false);
                 }
+                break;
         }
     }
 
-    private void uploadDialog () {
+
+    private void uploadDialog() {
 
         // Create the Dialog with two buttons
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-        builder.setView(inflater.inflate(R.layout.dialog, null)).setPositiveButton(getString(R.string.Sendstring), new DialogInterface.OnClickListener() {
+
+        final android.view.ViewParent parent = view.getParent ();
+        if (parent instanceof android.view.ViewManager)
+        {
+            final android.view.ViewManager viewManager = (android.view.ViewManager) parent;
+            viewManager.removeView (view);
+        }
+
+        builder.setView(view
+        ).setPositiveButton(getString(R.string.Sendstring), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int id) {
-
-                un = (EditText) findViewById(R.id.username);
-                age = (EditText) findViewById(R.id.Age);
-                male = (RadioButton) findViewById(R.id.radio_male);
-                female = (RadioButton) findViewById(R.id.radio_female);
-
-                //un.getText().toString();
-                /*String user_age = (String) age.getText().toString();
-                String user_gender = (String) gender_value;*/
-
                 sendCsvViaEmail();
             }
         }).setNegativeButton(getString(R.string.Cancelstring), new DialogInterface.OnClickListener() {
@@ -140,9 +142,11 @@ public class MainActivity extends Activity {
                 dialogInterface.dismiss();
             }
         }).show();
+
+
     }
 
-    private void sendCsvViaEmail(){
+    private void sendCsvViaEmail() {
 
         File filelocation = new File(Environment.getExternalStorageDirectory() + "/HWOutput/output.csv");
         if (!filelocation.exists()) {
@@ -154,8 +158,11 @@ public class MainActivity extends Activity {
         emailIntent.setType("vnd.android.cursor.dir/email");
         String subject = "Handwriting Data Capture";
         String TimeNow = Calendar.getInstance().getTime().toString();
-        String bodyText = "Attached you will find the data capture CSV file from: " + "INSERT USER" + gender_value + " on: " + TimeNow + " who attempted " + attempts + ((attempts == 1) ? " sketch." : " different sketches.");
-        String mail_Contents = "mailto:siozaris@outlook.com" +
+        String bodyText = "User: " + userName.getText().toString() + "\nGender: " + gender_value +
+                "\nAge: " + age.getText().toString() +
+                "\nSent time: " + TimeNow +
+                "\nAttempted " + attempts + ((attempts == 1) ? " sketch." : " different sketches.");
+        String mail_Contents = "mailto:mhti.lab@sydney.edu.au" +
                 "?cc=" + "siozaris@outlook.com" +
                 "&subject=" + Uri.encode(subject) +
                 "&body=" + Uri.encode(bodyText);

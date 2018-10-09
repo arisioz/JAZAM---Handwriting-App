@@ -1,4 +1,4 @@
-package com.project3400.usyd.handwritingcapturing;
+package com.isys3400.usyd.handwritingcapturing;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.project3400.usyd.handwritingcapturing", appContext.getPackageName());
+        assertEquals("com.isys3400.usyd.handwritingcapturing", appContext.getPackageName());
     }
 }
