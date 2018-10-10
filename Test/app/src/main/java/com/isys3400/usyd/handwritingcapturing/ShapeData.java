@@ -8,6 +8,11 @@ public class ShapeData {
     long time;
     boolean isStartPoint;
 
+    ShapeData(float x, float y) {
+        this.x = x;
+        this.y = y;
+    }
+
     ShapeData(float x, float y, long time, boolean isStartPoint) {
         this.x = x;
         this.y = y;

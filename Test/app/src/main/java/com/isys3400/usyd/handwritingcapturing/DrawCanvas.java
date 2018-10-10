@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
 
 public class DrawCanvas extends View {
@@ -35,8 +36,9 @@ public class DrawCanvas extends View {
     private float pPres = 0.5f;
     private int day, month, year;
 
-    ArrayList<ShapeData> chosenShape = new ArrayList<>();
-    ArrayList<ShapeData> cache = new ArrayList<>();
+    private ArrayList<ShapeData> chosenShape = new ArrayList<>();
+    private ArrayList<ShapeData> cache = new ArrayList<>();
+    private ArrayList<ShapeData> validPoints = new ArrayList<>();
 
     public DrawCanvas(Context c, AttributeSet attrs) {
         super(c, attrs);
@@ -76,6 +78,10 @@ public class DrawCanvas extends View {
             return false;
         }
 
+        float x = event.getX();
+        float y = event.getY();
+        float pressure = event.getPressure();
+
         switch (event.getAction()) {
 
             //touch down
@@ -99,8 +105,9 @@ public class DrawCanvas extends View {
                     makeToast();
                     return false;
                 }
-                saveInputCache(event.getX(), event.getY(), event.getPressure(), true);
-                drawTouchDown(event.getX(), event.getY());
+                saveInputCache(x, y, pressure, true);
+                drawTouchDown(x, y);
+
                 return true;
 
             //touch move
@@ -109,8 +116,15 @@ public class DrawCanvas extends View {
                     makeToast();
                     return true;
                 }
-                saveInputCache(event.getX(), event.getY(), event.getPressure(), false);
-                drawTouchMove(event.getX(), event.getY(), event.getPressure());
+                saveInputCache(x, y, pressure, false);
+                drawTouchMove(x, y, pressure);
+                addValidPoints(x, y);
+                inputAnalysis(chosenShape, validPoints);
+
+                String info = "Similarity:\t\t\t\t" + String.format(Locale.ENGLISH, "%.2f", simi) +
+                        "%\nCompleteness:\t" + String.format(Locale.ENGLISH, "%.2f", completeness) + "%";
+                mDrawActivity.tv.setText(info);
+
                 return true;
             default:
                 return true;
@@ -134,6 +148,21 @@ public class DrawCanvas extends View {
         } else {
             //pen input
             cache.add(new ShapeData(x, y, pressure, System.currentTimeMillis(), isStartPoint));
+        }
+    }
+
+    public void addValidPoints(float x, float y) {
+        boolean add = true;
+        for (int i = 0; i < validPoints.size(); i++) {
+            ShapeData tmp = validPoints.get(i);
+            if (Math.abs(x - tmp.x) <= 20 && Math.abs(y - tmp.y) <= 20) {
+                add = false;
+                break;
+            }
+        }
+        if (add) {
+            System.out.println();
+            validPoints.add(new ShapeData(x, y));
         }
     }
 
@@ -176,12 +205,16 @@ public class DrawCanvas extends View {
             return;
         }
 
-        //reset cache
+        //reset cache & validPoints
         cache.clear();
+        validPoints.clear();
 
         //reset assisted boolean
         fingerOrPen = null;
         endDraw = true;
+
+        //reset analysis
+        mDrawActivity.tv.setText("Analysis Not Available!");
 
         //reset canvas & icon color
         mDrawActivity.changeIcon("save_gray");
@@ -221,7 +254,7 @@ public class DrawCanvas extends View {
             allCache.append(MainActivity.chosenShape);
             String time = "," + day + "/" + month + "/" + year + "\n";
             allCache.append(time);
-            String attrs = lockInput?"X,Y,Time\n":"X,Y,Pressure,Time\n";
+            String attrs = lockInput ? "X,Y,Time\n" : "X,Y,Pressure,Time\n";
             allCache.append(attrs);
 
             //write input cache
@@ -410,13 +443,82 @@ public class DrawCanvas extends View {
             default:
                 break;
         }
+
+        System.out.println(chosenShape.get(0).x+"."+chosenShape.get(0).y);
+        System.out.println(chosenShape.get(chosenShape.size()-1).x+"."+chosenShape.get(chosenShape.size()-1).y);
+
     }
 
     public void addToShape(int index, float x, float y, int speed) {
         if (index == 0) {
-            chosenShape.add(new ShapeData(x, y, 1, true));
+            chosenShape.add(new ShapeData(Float.parseFloat(to4f(x)), Float.parseFloat(to4f(y)), 1, true));
         } else {
-            chosenShape.add(new ShapeData(x, y, index * speed, false));
+            chosenShape.add(new ShapeData(Float.parseFloat(to4f(x)), Float.parseFloat(to4f(y)), index * speed, false));
         }
+    }
+
+    int pointSize = -1;
+    double simi = -1;
+    double completeness = -1;
+
+    public void inputAnalysis(ArrayList<ShapeData> chosenShape, ArrayList<ShapeData> validPoints) {
+
+        if (pointSize != -1) {
+            if (validPoints.size() == pointSize) {
+                return;
+            }
+        }
+
+        boolean spiral = false;
+        if (MainActivity.chosenShape.equals("Spiral")) {
+            spiral = true;
+        }
+
+        double totalDist = 0;
+        double validSize = validPoints.size();
+        HashSet<Integer> completedPoints = new HashSet<>();
+
+        for (int i = 0; i < validPoints.size(); i++) {
+
+            ShapeData testPoint = validPoints.get(i);
+            double minDist = 99999999;
+            int chosenPoint = -1;
+            for (int j = 0; j < chosenShape.size(); j += 5) {
+                ShapeData shapePoint = chosenShape.get(j);
+                double dist = Math.sqrt(Math.pow(testPoint.x - shapePoint.x, 2) +
+                        Math.pow(testPoint.y - shapePoint.y, 2));
+                if (dist < minDist) {
+                    minDist = dist;
+                    chosenPoint = j;
+                }
+            }
+            if (minDist > 100) {
+                validSize--;
+                continue;
+            }
+            totalDist += minDist;
+            if (minDist < 40) {
+                completedPoints.add(chosenPoint);
+            }
+        }
+
+        if (validSize == 0) {
+            simi = 100;
+        } else {
+            simi = totalDist / validSize;
+        }
+
+        if (simi < (spiral ? 15 : 10)) {
+            simi = 100;
+        } else if (simi > (spiral ? 30 : 20)) {
+            simi = 0;
+        } else {
+            simi = ((double) (-1) / (double) (spiral ? 3375 : 1000) * Math.pow(simi - (spiral ? 15 : 10), 3) + 1) * 100;
+        }
+
+        completeness = ((double) completedPoints.size() /
+                (double) (chosenShape.size() / 5 + (spiral ? 1 : 0))) * 100;
+
+        pointSize = validPoints.size();
     }
 }

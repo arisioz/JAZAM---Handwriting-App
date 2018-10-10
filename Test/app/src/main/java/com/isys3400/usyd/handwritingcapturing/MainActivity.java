@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
 
@@ -24,7 +23,6 @@ public class MainActivity extends Activity {
     private EditText userName, age;
     private RadioButton male, female;
     private String gender_value;
-    public static int attempts;
     public static String chosenShape;
     private Button button_Upload;
     private ImageButton image_Button_1;
@@ -91,8 +89,6 @@ public class MainActivity extends Activity {
                 default:
                     throw new RuntimeException("Unknown button ID");
             }
-            // WILL ADD THAT TO THE DRAWACTIVITY
-            attempts++;
             startActivity(new Intent(MainActivity.this, DrawActivity.class));
         }
     };
@@ -123,11 +119,10 @@ public class MainActivity extends Activity {
         // Create the Dialog with two buttons
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
-        final android.view.ViewParent parent = view.getParent ();
-        if (parent instanceof android.view.ViewManager)
-        {
+        final android.view.ViewParent parent = view.getParent();
+        if (parent instanceof android.view.ViewManager) {
             final android.view.ViewManager viewManager = (android.view.ViewManager) parent;
-            viewManager.removeView (view);
+            viewManager.removeView(view);
         }
 
         builder.setView(view
@@ -158,10 +153,10 @@ public class MainActivity extends Activity {
         emailIntent.setType("vnd.android.cursor.dir/email");
         String subject = "Handwriting Data Capture";
         String TimeNow = Calendar.getInstance().getTime().toString();
-        String bodyText = "User: " + userName.getText().toString() + "\nGender: " + gender_value +
+        String bodyText = "User: " + userName.getText().toString() +
+                "\nGender: " + gender_value +
                 "\nAge: " + age.getText().toString() +
-                "\nSent time: " + TimeNow +
-                "\nAttempted " + attempts + ((attempts == 1) ? " sketch." : " different sketches.");
+                "\nSent time: " + TimeNow;
         String mail_Contents = "mailto:mhti.lab@sydney.edu.au" +
                 "?cc=" + "siozaris@outlook.com" +
                 "&subject=" + Uri.encode(subject) +

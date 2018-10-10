@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 public class DrawActivity extends Activity {
 
@@ -14,12 +15,16 @@ public class DrawActivity extends Activity {
     private ImageButton imgbtn_reset;
     private ImageButton imgbtn_save;
     private ImageButton imgbtn_play;
-    DrawCanvas dc;
+    private DrawCanvas dc;
+
+    public TextView tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_draw);
+
+        dc = findViewById(R.id.myCanvas);
 
         ActionBar actionBar = getActionBar();
         actionBar.hide();
@@ -33,13 +38,14 @@ public class DrawActivity extends Activity {
         imgbtn_reset.setOnClickListener(tweakedOnClickListener);
         imgbtn_save.setOnClickListener(tweakedOnClickListener);
         imgbtn_play.setOnClickListener(tweakedOnClickListener);
+
+        tv =findViewById(R.id.tv_simi);
     }
 
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
-            dc = findViewById(R.id.myCanvas);
             switch (v.getId()) {
                 case R.id.imgbtn_back:
                     startActivity(new Intent(DrawActivity.this, MainActivity.class));
