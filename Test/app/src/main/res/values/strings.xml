@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Handwriting Capturing</string>
     <string name="Sendstring">Send</string>
+    <string name="Next">Next</string>
+    <string name="StartNewTest">Start New Test</string>
     <string name="Cancelstring">Cancel</string>
 </resources>

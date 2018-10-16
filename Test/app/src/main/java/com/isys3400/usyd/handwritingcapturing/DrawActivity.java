@@ -3,7 +3,6 @@ package com.isys3400.usyd.handwritingcapturing;
 import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -27,7 +26,9 @@ public class DrawActivity extends Activity {
         dc = findViewById(R.id.myCanvas);
 
         ActionBar actionBar = getActionBar();
-        actionBar.hide();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
 
         imgbtn_back = findViewById(R.id.imgbtn_back);
         imgbtn_reset = findViewById(R.id.imgbtn_reset);
@@ -48,7 +49,7 @@ public class DrawActivity extends Activity {
 
             switch (v.getId()) {
                 case R.id.imgbtn_back:
-                    startActivity(new Intent(DrawActivity.this, MainActivity.class));
+                    onBackPressed();
                     break;
                 case R.id.imgbtn_reset:
                     dc.reset();
@@ -56,6 +57,7 @@ public class DrawActivity extends Activity {
                 case R.id.imgbtn_save:
                     requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
                     dc.save();
+                    MainActivity.indexNum++;
                     break;
                 case R.id.imgbtn_play:
                     dc.play();

@@ -243,13 +243,15 @@ public class DrawCanvas extends View {
         }
 
         //save file
-        File file = new File(Environment.getExternalStorageDirectory(), "/HWOutput/output.csv");
+        File file = new File(Environment.getExternalStorageDirectory(), "/HWOutput/" + MainActivity.fileName);
         try {
             FileOutputStream fos = new FileOutputStream(file, true);
 
             StringBuilder allCache = new StringBuilder();
 
             //write header
+            String index = "#" + MainActivity.indexNum + ",";
+            allCache.append(index);
             allCache.append(lockInput ? "Finger," : "Pen,");
             allCache.append(MainActivity.chosenShape);
             String time = "," + day + "/" + month + "/" + year + "\n";
@@ -444,8 +446,8 @@ public class DrawCanvas extends View {
                 break;
         }
 
-        System.out.println(chosenShape.get(0).x+"."+chosenShape.get(0).y);
-        System.out.println(chosenShape.get(chosenShape.size()-1).x+"."+chosenShape.get(chosenShape.size()-1).y);
+        System.out.println(chosenShape.get(0).x + "." + chosenShape.get(0).y);
+        System.out.println(chosenShape.get(chosenShape.size() - 1).x + "." + chosenShape.get(chosenShape.size() - 1).y);
 
     }
 

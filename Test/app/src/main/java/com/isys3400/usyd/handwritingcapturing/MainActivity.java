@@ -18,12 +18,17 @@ import java.util.Calendar;
 
 public class MainActivity extends Activity {
 
-    private View view = null;
+    public static String fileName;
+    public static String chosenShape;
+    public static int indexNum;
 
-    private EditText userName, age;
+    private View testDialog = null;
+    private View infoDialog = null;
+    private View sendDialog = null;
+
+    private EditText userName, age, testName, sendFileName;
     private RadioButton male, female;
     private String gender_value;
-    public static String chosenShape;
     private Button button_Upload;
     private ImageButton image_Button_1;
     private ImageButton image_Button_2;
@@ -38,7 +43,11 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         ActionBar actionBar = getActionBar();
-        actionBar.hide();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+
+        indexNum = 0;
 
         image_Button_1 = findViewById(R.id.imgbtn1);
         image_Button_2 = findViewById(R.id.imgbtn2);
@@ -56,11 +65,21 @@ public class MainActivity extends Activity {
         // HERE
         button_Upload.setOnClickListener(tweakedOnClickListener);
 
-        view = MainActivity.this.getLayoutInflater().inflate(R.layout.dialog, null);
-        userName = view.findViewById(R.id.username);
-        age = view.findViewById(R.id.Age);
-        male = view.findViewById(R.id.radio_male);
-        female = view.findViewById(R.id.radio_female);
+        infoDialog = MainActivity.this.getLayoutInflater().inflate(R.layout.dialog_info, null);
+        userName = infoDialog.findViewById(R.id.Username);
+        age = infoDialog.findViewById(R.id.Age);
+        male = infoDialog.findViewById(R.id.radio_male);
+        female = infoDialog.findViewById(R.id.radio_female);
+        gender_value = "Male";
+
+        testDialog = MainActivity.this.getLayoutInflater().inflate(R.layout.dialog_start_test, null);
+        testName = testDialog.findViewById(R.id.Testname);
+
+        sendDialog = MainActivity.this.getLayoutInflater().inflate(R.layout.dialog_send, null);
+        sendFileName = sendDialog.findViewById(R.id.send_file_name);
+
+        testDialog();
+
     }
 
     private View.OnClickListener tweakedOnClickListener = new View.OnClickListener() {
@@ -84,7 +103,7 @@ public class MainActivity extends Activity {
                     chosenShape = shapes[rndNum];
                     break;
                 case R.id.button:
-                    uploadDialog();
+                    sendDialog();
                     return;
                 default:
                     throw new RuntimeException("Unknown button ID");
@@ -113,19 +132,84 @@ public class MainActivity extends Activity {
         }
     }
 
-
-    private void uploadDialog() {
-
-        // Create the Dialog with two buttons
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-
-        final android.view.ViewParent parent = view.getParent();
+    private void testDialog() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setCancelable(false);
+        final android.view.ViewParent parent = testDialog.getParent();
         if (parent instanceof android.view.ViewManager) {
             final android.view.ViewManager viewManager = (android.view.ViewManager) parent;
-            viewManager.removeView(view);
+            viewManager.removeView(testDialog);
+        }
+        builder.setView(testDialog
+        ).setPositiveButton(getString(R.string.Next), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int id) {
+                if (testName.getText().toString().length() < 4) {
+                    Toast.makeText(getApplicationContext(), "The test name must have at least 4 characters!", Toast.LENGTH_SHORT).show();
+                    testDialog();
+                } else {
+                    infoDialog();
+                }
+            }
+        }).show();
+    }
+
+    private void infoDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setCancelable(false);
+        final android.view.ViewParent parent = infoDialog.getParent();
+        if (parent instanceof android.view.ViewManager) {
+            final android.view.ViewManager viewManager = (android.view.ViewManager) parent;
+            viewManager.removeView(infoDialog);
+        }
+        builder.setView(infoDialog
+        ).setPositiveButton(getString(R.string.StartNewTest), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int id) {
+                if (userName.getText().toString().length() < 4) {
+                    Toast.makeText(getApplicationContext(), "The user name must have at least 4 characters!", Toast.LENGTH_SHORT).show();
+                    infoDialog();
+                    return;
+                }
+
+                String tempAge = age.getText().toString();
+                if (tempAge.length() == 0) {
+                    Toast.makeText(getApplicationContext(), "Age is required!", Toast.LENGTH_SHORT).show();
+                    infoDialog();
+                    return;
+                }
+                if (Integer.parseInt(tempAge) < 0 || Integer.parseInt(tempAge) > 100) {
+                    Toast.makeText(getApplicationContext(), "The age must be in the range of 0 to 100!", Toast.LENGTH_SHORT).show();
+                    age.setText("");
+                    infoDialog();
+                    return;
+                }
+
+                fileName = testName.getText().toString() + "_" + userName.getText().toString() + "_";
+                String sdPath = Environment.getExternalStorageDirectory() + "";
+                int count = 0;
+                while (new File(sdPath + "/HWOutput/" + fileName + count + ".csv").exists()) {
+                    count++;
+                }
+                fileName += (count + ".csv");
+                sendFileName.setText(fileName);
+
+                dialogInterface.dismiss();
+            }
+        }).show();
+    }
+
+    private void sendDialog() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        final android.view.ViewParent parent = sendDialog.getParent();
+        if (parent instanceof android.view.ViewManager) {
+            final android.view.ViewManager viewManager = (android.view.ViewManager) parent;
+            viewManager.removeView(sendDialog);
         }
 
-        builder.setView(view
+        sendFileName.setText(fileName);
+
+        builder.setView(sendDialog
         ).setPositiveButton(getString(R.string.Sendstring), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int id) {
@@ -137,17 +221,16 @@ public class MainActivity extends Activity {
                 dialogInterface.dismiss();
             }
         }).show();
-
-
     }
 
     private void sendCsvViaEmail() {
 
-        File filelocation = new File(Environment.getExternalStorageDirectory() + "/HWOutput/output.csv");
+        File filelocation = new File(Environment.getExternalStorageDirectory() + "/HWOutput/" + sendFileName.getText().toString());
         if (!filelocation.exists()) {
-            Toast.makeText(MainActivity.this, "No CSV file found, you have to make at least one sketch", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "No such CSV file found. For new test, please make one sketch first.", Toast.LENGTH_SHORT).show();
             return;
         }
+
         Uri path_of_csv = Uri.fromFile(filelocation);
         Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
         emailIntent.setType("vnd.android.cursor.dir/email");
